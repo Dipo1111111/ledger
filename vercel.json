@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npm run build -w packages/common && npm run build -w packages/client",
+  "outputDirectory": "packages/client/dist",
+  "installCommand": "npm install",
+  "framework": "vite"
+}
