@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ledger — Traditional Playing Cards</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: oklch(0.18 0.035 160);
+      color: oklch(0.92 0.01 85);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image:
+        radial-gradient(ellipse 40% 50% at 25% 40%, oklch(0.80 0.10 85 / 0.04) 0%, transparent 60%),
+        radial-gradient(ellipse 30% 40% at 75% 60%, oklch(0.30 0.08 25 / 0.06) 0%, transparent 50%);
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='80' height='80' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    body > * { position: relative; z-index: 1; }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 6px;
+      color: oklch(0.68 0.18 72);
+      letter-spacing: 0.04em;
+      text-align: center;
+    }
+    .subtitle {
+      font-size: 0.8rem;
+      color: oklch(0.55 0.03 80);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .card-type-label {
+      text-align: center;
+      color: oklch(0.50 0.03 80);
+      font-size: 0.75rem;
+      margin-bottom: 24px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .card-type-label span {
+      display: inline-block;
+      margin: 0 12px;
+      padding: 4px 12px;
+      border-radius: 4px;
+    }
+    .face { background: oklch(0.25 0.04 250 / 0.3); }
+    .aces { background: oklch(0.25 0.04 25 / 0.3); }
+
+    .card-grid {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .card-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-frame {
+      width: 180px;
+      aspect-ratio: 2 / 3;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow:
+        0 8px 40px oklch(0 0 0 / 0.4),
+        0 2px 8px oklch(0 0 0 / 0.2);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+      cursor: pointer;
+    }
+    .card-frame:hover {
+      transform: translateY(-10px) rotate(-0.5deg);
+      box-shadow:
+        0 20px 60px oklch(0 0 0 / 0.5),
+        0 0 0 2px oklch(0.68 0.18 72);
+    }
+    .card-frame img {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .card-label {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+    }
+    .label-spade { color: oklch(0.50 0.15 250); }
+    .label-heart { color: oklch(0.55 0.18 350); }
+    .label-club { color: oklch(0.68 0.18 72); }
+    .label-diamond { color: oklch(0.55 0.18 25); }
+
+    .note {
+      margin-top: 48px;
+      font-size: 0.7rem;
+      color: oklch(0.45 0.03 80);
+      text-align: center;
+    }
+    .note a { color: oklch(0.68 0.18 72); }
+  </style>
+</head>
+<body>
+  <div>
+    <h1>Traditional Playing Cards</h1>
+    <p class="subtitle">English pattern · Wikimedia Commons · CC0 Public Domain</p>
+
+    <p class="card-type-label"><span class="face">KINGS</span></p>
+    <div class="card-grid">
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="king_of_spades.svg" alt="King of Spades" /></div>
+        <div class="card-label label-spade">Spades</div>
+      </div>
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="king_of_hearts.svg" alt="King of Hearts" /></div>
+        <div class="card-label label-heart">Hearts</div>
+      </div>
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="king_of_clubs.svg" alt="King of Clubs" /></div>
+        <div class="card-label label-club">Clubs</div>
+      </div>
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="king_of_diamonds.svg" alt="King of Diamonds" /></div>
+        <div class="card-label label-diamond">Diamonds</div>
+      </div>
+    </div>
+
+    <p class="card-type-label" style="margin-top:32px"><span class="face">QUEENS</span></p>
+    <div class="card-grid">
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="queen_of_spades.svg" alt="Queen of Spades" /></div>
+        <div class="card-label label-spade">Spades</div>
+      </div>
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="queen_of_hearts.svg" alt="Queen of Hearts" /></div>
+        <div class="card-label label-heart">Hearts</div>
+      </div>
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="queen_of_clubs.svg" alt="Queen of Clubs" /></div>
+        <div class="card-label label-club">Clubs</div>
+      </div>
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="queen_of_diamonds.svg" alt="Queen of Diamonds" /></div>
+        <div class="card-label label-diamond">Diamonds</div>
+      </div>
+    </div>
+
+    <p class="card-type-label" style="margin-top:32px"><span class="face">JACKS</span></p>
+    <div class="card-grid">
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="jack_of_spades.svg" alt="Jack of Spades" /></div>
+        <div class="card-label label-spade">Spades</div>
+      </div>
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="jack_of_hearts.svg" alt="Jack of Hearts" /></div>
+        <div class="card-label label-heart">Hearts</div>
+      </div>
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="jack_of_clubs.svg" alt="Jack of Clubs" /></div>
+        <div class="card-label label-club">Clubs</div>
+      </div>
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="jack_of_diamonds.svg" alt="Jack of Diamonds" /></div>
+        <div class="card-label label-diamond">Diamonds</div>
+      </div>
+    </div>
+
+    <p class="card-type-label" style="margin-top:32px"><span class="aces">ACES</span></p>
+    <div class="card-grid">
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="ace_of_spades.svg" alt="Ace of Spades" /></div>
+        <div class="card-label label-spade">Spades</div>
+      </div>
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="ace_of_hearts.svg" alt="Ace of Hearts" /></div>
+        <div class="card-label label-heart">Hearts</div>
+      </div>
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="ace_of_clubs.svg" alt="Ace of Clubs" /></div>
+        <div class="card-label label-club">Clubs</div>
+      </div>
+      <div class="card-wrapper">
+        <div class="card-frame"><img src="ace_of_diamonds.svg" alt="Ace of Diamonds" /></div>
+        <div class="card-label label-diamond">Diamonds</div>
+      </div>
+    </div>
+
+    <p class="note">
+      Source: <a href="https://commons.wikimedia.org/wiki/Category:SVG_English_pattern_playing_cards">Wikimedia Commons</a> &middot;
+      <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0 1.0 Public Domain</a>
+    </p>
+  </div>
+</body>
+</html>

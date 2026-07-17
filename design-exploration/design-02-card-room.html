@@ -1,0 +1,2174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ledger — The Card Room</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    /* ============================================
+       DESIGN TOKENS (OKLCH)
+       ============================================ */
+    :root {
+      --felt: oklch(0.18 0.035 160);
+      --felt-dark: oklch(0.13 0.03 160);
+      --felt-light: oklch(0.28 0.04 150);
+      --card-bg: oklch(0.92 0.012 85);
+      --card-shadow: oklch(0 0 0 / 0.35);
+      --gold: oklch(0.887 0.182 95.3);
+      --gold-light: oklch(0.92 0.14 95.3);
+      --gold-dark: oklch(0.72 0.20 88);
+      --gold-muted: oklch(0.80 0.10 95.3 / 0.6);
+      --cream: oklch(0.93 0.01 80);
+      --cream-muted: oklch(0.75 0.02 70);
+      --burgundy: oklch(0.28 0.10 25);
+      --burgundy-light: oklch(0.45 0.12 28);
+      --red: oklch(0.55 0.18 25);
+      --green: oklch(0.55 0.15 150);
+      --blue: oklch(0.50 0.15 250);
+      --pink: oklch(0.55 0.18 350);
+      --amber: oklch(0.70 0.18 75);
+      --orange: oklch(0.62 0.16 45);
+      --white: oklch(0.96 0.005 85);
+      --text: oklch(0.92 0.01 85);
+      --text-secondary: oklch(0.72 0.02 80);
+      --text-muted: oklch(0.55 0.03 80);
+      --danger: oklch(0.55 0.20 30);
+      --danger-bg: oklch(0.30 0.08 25 / 0.25);
+      --success: oklch(0.55 0.15 150);
+      --warning: oklch(0.70 0.18 75);
+
+      /* z-index scale */
+      --z-sticky: 100;
+      --z-dropdown: 200;
+      --z-modal-backdrop: 300;
+      --z-modal: 400;
+      --z-toast: 500;
+      --z-tooltip: 600;
+    }
+
+    /* ============================================
+       RESET & BASE
+       ============================================ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--felt);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .font-serif { font-family: 'Playfair Display', serif; }
+    .heading-serif { font-family: 'Playfair Display', serif; font-weight: 700; letter-spacing: 0.02em; }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 99px; }
+
+    /* ============================================
+       FELT TEXTURE
+       ============================================ */
+    .felt-bg {
+      background: var(--felt);
+      background-image:
+        radial-gradient(ellipse 40% 50% at 25% 40%, oklch(0.80 0.10 85 / 0.04) 0%, transparent 60%),
+        radial-gradient(ellipse 30% 40% at 75% 60%, oklch(0.30 0.08 25 / 0.06) 0%, transparent 50%);
+      position: relative;
+    }
+    .felt-bg::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='80' height='80' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+    .felt-bg > * { position: relative; z-index: 1; }
+
+    /* ============================================
+       ANIMATIONS
+       ============================================ */
+    @keyframes deal-in {
+      0% { opacity: 0; transform: translateY(-24px) scale(0.92) rotate(-3deg); }
+      100% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+    }
+    @keyframes slide-up {
+      0% { opacity: 0; transform: translateY(16px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slide-in-right {
+      0% { opacity: 0; transform: translateX(16px); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fade-in {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    @keyframes pulse-orb {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    @keyframes chip-stack {
+      0% { opacity: 0; transform: translateY(12px) scale(0.9); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes border-pulse {
+      0%, 100% { border-color: var(--gold-dark); }
+      50% { border-color: var(--gold-light); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    @keyframes count-num {
+      0% { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes heartbeat {
+      0% { transform: scale(1); }
+      15% { transform: scale(1.15); }
+      30% { transform: scale(1); }
+      45% { transform: scale(1.08); }
+      60% { transform: scale(1); }
+    }
+
+    .anim-deal { animation: deal-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+    .anim-slide-up { animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .anim-slide-right { animation: slide-in-right 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .anim-fade { animation: fade-in 0.3s ease-out forwards; }
+    .anim-chip { animation: chip-stack 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+    .anim-count { animation: count-num 0.3s ease-out forwards; }
+    .anim-heartbeat { animation: heartbeat 0.6s ease-in-out; }
+
+    .stagger-1 { animation-delay: 0.04s; }
+    .stagger-2 { animation-delay: 0.08s; }
+    .stagger-3 { animation-delay: 0.12s; }
+    .stagger-4 { animation-delay: 0.16s; }
+    .stagger-5 { animation-delay: 0.20s; }
+    .stagger-6 { animation-delay: 0.24s; }
+    .stagger-7 { animation-delay: 0.28s; }
+    .stagger-8 { animation-delay: 0.32s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ============================================
+       PLAYING CARDS
+       ============================================ */
+    .playing-card {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 5 / 7;
+      background: linear-gradient(145deg, var(--card-bg), oklch(0.88 0.01 85));
+      border-radius: 10px;
+      border: 1px solid oklch(0.80 0.02 85);
+      box-shadow:
+        0 4px 16px var(--card-shadow),
+        inset 0 1px 0 oklch(1 0 0 / 0.6),
+        inset 0 -1px 0 oklch(0 0 0 / 0.06);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      overflow: hidden;
+      user-select: none;
+    }
+    .playing-card::before {
+      content: '';
+      position: absolute;
+      inset: 6px;
+      border-radius: 6px;
+      border: 1px solid oklch(0 0 0 / 0.05);
+      pointer-events: none;
+    }
+    .playing-card:hover {
+      transform: translateY(-6px) rotate(-0.5deg);
+      box-shadow:
+        0 12px 40px var(--card-shadow),
+        0 0 0 2px var(--gold-dark),
+        inset 0 1px 0 oklch(1 0 0 / 0.6);
+    }
+    .playing-card:active {
+      transform: translateY(-2px) rotate(-0.5deg);
+      transition-duration: 0.05s;
+    }
+    .playing-card.owned {
+      cursor: default;
+    }
+    .playing-card.owned:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px var(--card-shadow);
+    }
+    .playing-card.market-card:hover {
+      border-color: var(--gold-dark);
+      box-shadow:
+        0 12px 40px var(--card-shadow),
+        0 0 0 2px var(--gold-dark);
+    }
+
+    /* Corner rank markers */
+    .card-corner {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+      font-weight: 700;
+    }
+    .card-corner-tl { top: 8px; left: 8px; }
+    .card-corner-br { bottom: 8px; right: 8px; transform: rotate(180deg); }
+    .card-corner .rank { font-size: 0.85rem; }
+    .card-corner .suit { font-size: 0.6rem; margin-top: 1px; }
+
+    /* Card center suit */
+    .card-center-suit {
+      font-size: 2.8rem;
+      line-height: 1;
+      margin-bottom: 4px;
+      opacity: 0.85;
+    }
+
+    /* Card stats printed on face */
+    .card-stats {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.55rem;
+      font-weight: 600;
+      padding: 5px 8px;
+      border-radius: 4px;
+      background: oklch(0 0 0 / 0.04);
+    }
+    .card-stats span { display: flex; align-items: center; gap: 2px; }
+
+    /* Owned badge on card */
+    .owned-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: white;
+      box-shadow: 0 2px 8px oklch(0 0 0 / 0.3);
+      z-index: 1;
+    }
+    .owned-badge.spade { background: var(--blue); }
+    .owned-badge.heart { background: var(--pink); }
+    .owned-badge.club { background: var(--gold-dark); }
+    .owned-badge.diamond { background: var(--red); }
+
+    /* SVG face card art */
+    .card-face-svg {
+      width: 64%;
+      height: auto;
+      flex-shrink: 0;
+    }
+
+    /* Card suit colors */
+    .suit-spade { color: var(--blue); }
+    .suit-heart { color: var(--pink); }
+    .suit-club { color: var(--gold-dark); }
+    .suit-diamond { color: var(--red); }
+    .bg-suit-spade { background: oklch(0.50 0.15 250 / 0.12); }
+    .bg-suit-heart { background: oklch(0.55 0.18 350 / 0.12); }
+    .bg-suit-club { background: oklch(0.58 0.16 82 / 0.12); }
+    .bg-suit-diamond { background: oklch(0.55 0.18 25 / 0.12); }
+
+    /* Market card variant (slightly different) */
+    .market-card {
+      aspect-ratio: 5 / 7;
+      background: linear-gradient(145deg, oklch(0.88 0.015 85), oklch(0.84 0.01 85));
+      border-radius: 10px;
+      border: 1px solid oklch(0.75 0.02 85);
+      box-shadow: 0 4px 16px var(--card-shadow);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      text-align: center;
+    }
+    .market-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--gold-dark);
+      box-shadow: 0 12px 40px var(--card-shadow), 0 0 0 2px var(--gold-dark);
+    }
+    .market-card:active {
+      transform: translateY(-1px);
+      transition-duration: 0.05s;
+    }
+
+    /* ============================================
+       LEDGER TOKENS — Game-native economy pieces
+       Board-game tile / challenge coin aesthetic.
+       Double rim, icon + numeral, no casino cues.
+       ============================================ */
+    .chip {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background: var(--chip-body);
+      border: 2px solid var(--chip-outer);
+      box-shadow:
+        0 2px 6px oklch(0 0 0 / 0.3),
+        inset 0 0 0 4px var(--chip-inner),
+        inset 0 1px 1px oklch(1 1 0 / 0.08);
+      position: relative;
+    }
+    .chip .chip-icon {
+      font-size: 0.45rem;
+      line-height: 1;
+      margin-bottom: 2px;
+      opacity: 0.7;
+      letter-spacing: 0;
+    }
+    .chip .chip-value {
+      font-weight: 800;
+      font-size: 0.85rem;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .chip-gold {
+      --chip-body: oklch(0.78 0.12 95.3);
+      --chip-outer: oklch(0.92 0.10 95.3);
+      --chip-inner: oklch(0.65 0.15 95.3 / 0.4);
+      color: oklch(0.12 0.02 85);
+    }
+    .chip-red {
+      --chip-body: oklch(0.48 0.10 25);
+      --chip-outer: oklch(0.65 0.12 25);
+      --chip-inner: oklch(0.30 0.10 25 / 0.4);
+      color: var(--white);
+    }
+    .chip-blue {
+      --chip-body: oklch(0.42 0.08 250);
+      --chip-outer: oklch(0.58 0.10 250);
+      --chip-inner: oklch(0.25 0.08 250 / 0.4);
+      color: var(--white);
+    }
+    .chip-green {
+      --chip-body: oklch(0.44 0.08 150);
+      --chip-outer: oklch(0.60 0.10 150);
+      --chip-inner: oklch(0.28 0.08 150 / 0.4);
+      color: var(--white);
+    }
+
+    .chip-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .chip-stack .chip + .chip { margin-top: -36px; }
+
+    /* ============================================
+       COMPONENT STYLES
+       ============================================ */
+
+    /* Gold scroll / panel */
+    .panel {
+      background: linear-gradient(135deg, oklch(0.15 0.03 150 / 0.55), oklch(0.10 0.02 150 / 0.40));
+      border: 1px solid oklch(0.60 0.08 85 / 0.12);
+      border-radius: 14px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .panel-gold {
+      border-color: oklch(0.65 0.12 85 / 0.18);
+      box-shadow: 0 0 20px oklch(0.72 0.15 85 / 0.04);
+      position: relative;
+    }
+    .panel-glass {
+      background: oklch(0.15 0.03 150 / 0.25);
+      border: 1px solid oklch(0.60 0.08 85 / 0.10);
+      border-radius: 14px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .panel-chronicle {
+      background: oklch(0.15 0.03 150 / 0.25);
+      border: 1px solid oklch(0.72 0.15 85 / 0.12);
+      border-radius: 14px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position: relative;
+    }
+
+    /* Decorative gold corner accents */
+    .corner {
+      position: absolute;
+      width: 18px; height: 18px;
+      border-color: var(--gold-dark);
+    }
+    .corner-tl { top: -1px; left: -1px; border-top: 1.5px solid; border-left: 1.5px solid; border-radius: 4px 0 0 0; }
+    .corner-tr { top: -1px; right: -1px; border-top: 1.5px solid; border-right: 1.5px solid; border-radius: 0 4px 0 0; }
+    .corner-bl { bottom: -1px; left: -1px; border-bottom: 1.5px solid; border-left: 1.5px solid; border-radius: 0 0 0 4px; }
+    .corner-br { bottom: -1px; right: -1px; border-bottom: 1.5px solid; border-right: 1.5px solid; border-radius: 0 0 4px 0; }
+
+    /* Ornamental divider */
+    .ornament {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--gold-muted);
+    }
+    .ornament::before, .ornament::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, oklch(0.58 0.16 82 / 0.3), transparent);
+    }
+
+    /* Buttons */
+    .btn-gold {
+      background: var(--gold-dark);
+      color: oklch(0.12 0.02 85);
+      font-weight: 600;
+      border: 1px solid var(--gold);
+      border-radius: 9px;
+      padding: 10px 22px;
+      font-size: 0.8rem;
+      font-family: 'Inter', system-ui, sans-serif;
+      cursor: pointer;
+      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+      letter-spacing: 0.01em;
+      position: relative;
+    }
+    .btn-gold:hover {
+      background: var(--gold);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px oklch(0.72 0.15 85 / 0.25);
+    }
+    .btn-gold:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+    .btn-gold:focus-visible {
+      outline: 2px solid var(--white);
+      outline-offset: 2px;
+    }
+    .btn-gold:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      font-weight: 500;
+      border: 1px solid oklch(0.60 0.08 85 / 0.15);
+      border-radius: 9px;
+      padding: 10px 20px;
+      font-size: 0.78rem;
+      font-family: 'Inter', system-ui, sans-serif;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-ghost:hover {
+      border-color: var(--gold-dark);
+      color: var(--text);
+      background: oklch(0.72 0.15 85 / 0.06);
+    }
+    .btn-ghost:active {
+      background: oklch(0.72 0.15 85 / 0.10);
+    }
+    .btn-ghost:focus-visible {
+      outline: 2px solid var(--white);
+      outline-offset: 2px;
+    }
+    .btn-ghost:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .btn-danger {
+      background: var(--red);
+      color: white;
+      font-weight: 600;
+      border: 1px solid oklch(0.40 0.15 25);
+      border-radius: 9px;
+      padding: 10px 22px;
+      font-size: 0.78rem;
+      font-family: 'Inter', system-ui, sans-serif;
+      cursor: pointer;
+      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-danger:hover {
+      background: oklch(0.60 0.20 28);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px oklch(0.20 0.10 25 / 0.4);
+    }
+    .btn-danger:active { transform: translateY(0); }
+    .btn-danger:focus-visible {
+      outline: 2px solid var(--white);
+      outline-offset: 2px;
+    }
+    .btn-danger:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Health badge */
+    .health-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 10px;
+      border-radius: 99px;
+      font-size: 0.58rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border: 1px solid;
+    }
+    .health-badge .dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+    }
+    .health-badge.healthy { border-color: oklch(0.55 0.15 150 / 0.3); color: var(--success); background: oklch(0.55 0.15 150 / 0.08); }
+    .health-badge.healthy .dot { background: var(--success); }
+    .health-badge.stable { border-color: oklch(0.70 0.18 75 / 0.3); color: var(--warning); background: oklch(0.70 0.18 75 / 0.08); }
+    .health-badge.stable .dot { background: var(--warning); }
+    .health-badge.stressed { border-color: oklch(0.58 0.16 45 / 0.3); color: var(--orange); background: oklch(0.58 0.16 45 / 0.08); }
+    .health-badge.stressed .dot { background: var(--orange); }
+    .health-badge.critical { border-color: oklch(0.55 0.20 30 / 0.4); color: var(--danger); background: oklch(0.55 0.20 30 / 0.10); }
+    .health-badge.critical .dot { background: var(--danger); animation: pulse-orb 1.2s ease-in-out infinite; }
+
+    /* Player row */
+    .player-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 11px;
+      transition: background 0.15s ease;
+    }
+    .player-row:hover {
+      background: oklch(1 1 0 / 0.03);
+    }
+    .player-row.active-turn {
+      background: oklch(0.72 0.15 85 / 0.07);
+      border: 1px solid oklch(0.72 0.15 85 / 0.15);
+    }
+    .player-row.eliminated {
+      opacity: 0.3;
+      filter: grayscale(0.8);
+    }
+
+    .player-avatar {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    /* Progress bar */
+    .track {
+      height: 5px;
+      background: oklch(0 0 0 / 0.15);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .track-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Tag */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 9px;
+      border-radius: 5px;
+      font-size: 0.55rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    /* Turn orb */
+    .turn-orb {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 12px oklch(0.72 0.15 85 / 0.4);
+    }
+    .turn-orb.pulse {
+      animation: pulse-orb 2s ease-in-out infinite;
+    }
+
+    /* Chat input */
+    .chat-input {
+      background: oklch(0 0 0 / 0.20);
+      border: 1px solid oklch(0.60 0.08 85 / 0.12);
+      border-radius: 9px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 0.78rem;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.15s ease;
+    }
+    .chat-input:focus { border-color: var(--gold-dark); }
+    .chat-input::placeholder { color: var(--text-muted); }
+    .chat-input:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Distress banner */
+    .distress-banner {
+      background: linear-gradient(135deg, oklch(0.28 0.10 25 / 0.35), oklch(0.20 0.08 25 / 0.25));
+      border: 1px solid oklch(0.55 0.20 30 / 0.2);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ============================================
+       LOG ENTRY
+       ============================================ */
+    .log-entry {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid oklch(1 1 0 / 0.04);
+    }
+    .log-entry:last-child { border-bottom: none; }
+    .log-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+
+    /* ============================================
+       EMPTY STATE
+       ============================================ */
+    .empty-slot {
+      aspect-ratio: 5 / 7;
+      border: 2px dashed oklch(0.50 0.03 80 / 0.2);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: var(--text-muted);
+      font-size: 0.65rem;
+      text-align: center;
+    }
+
+    /* Takeover freeze overlay on chat */
+    .chat-frozen {
+      position: relative;
+    }
+    .chat-frozen::after {
+      content: 'Negotiations frozen — Takeover in progress';
+      position: absolute;
+      inset: 0;
+      background: oklch(0.55 0.20 30 / 0.08);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--danger);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      border-radius: inherit;
+    }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 1024px) {
+      .main-grid { grid-template-columns: 1fr !important; }
+    }
+    @media (max-width: 640px) {
+      .card-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+      .card-grid-2 { grid-template-columns: 1fr !important; }
+    }
+
+    /* ============================================
+       APP SHELL — Sidebar, Lobby, Panels
+       Fixed-position overlays. Card Room unchanged.
+       ============================================ */
+
+    /* Sidebar — thin utility strip, always visible */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 48px;
+      height: 100vh;
+      z-index: 1000;
+      background: oklch(0.10 0.02 150 / 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-right: 1px solid oklch(0.60 0.08 85 / 0.10);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 0;
+      gap: 2px;
+    }
+    .sidebar-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--gold-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1rem;
+      color: oklch(0.12 0.02 85);
+      border: 1px solid var(--gold);
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sidebar-logo:hover {
+      transform: scale(1.1);
+    }
+    .sidebar-divider {
+      width: 24px;
+      height: 1px;
+      background: oklch(0.60 0.08 85 / 0.12);
+      margin: 6px 0;
+    }
+    .sidebar-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: oklch(0.55 0.03 80);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+    .sidebar-btn:hover {
+      background: oklch(0.60 0.08 85 / 0.10);
+      color: var(--gold);
+    }
+    .sidebar-btn.active {
+      color: var(--gold);
+      background: oklch(0.72 0.15 85 / 0.08);
+    }
+    .sidebar-btn .tooltip {
+      position: absolute;
+      left: 100%;
+      margin-left: 8px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: oklch(0.08 0.02 150);
+      color: oklch(0.85 0.01 85);
+      font-size: 0.65rem;
+      font-family: 'Inter', system-ui, sans-serif;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+      z-index: 1001;
+    }
+    .sidebar-btn:hover .tooltip {
+      opacity: 1;
+    }
+    .sidebar-spacer {
+      flex: 1;
+    }
+
+    /* Overlay panels — slide from left, fixed position */
+    .panel-overlay {
+      position: fixed;
+      top: 0;
+      left: 48px;
+      width: 340px;
+      height: 100vh;
+      z-index: 999;
+      background: oklch(0.10 0.02 150 / 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-right: 1px solid oklch(0.60 0.08 85 / 0.12);
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .panel-overlay.open {
+      transform: translateX(0);
+    }
+    .panel-header {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid oklch(0.60 0.08 85 / 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      color: var(--gold);
+      letter-spacing: 0.03em;
+    }
+    .panel-close {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: oklch(0.50 0.03 80);
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .panel-close:hover { background: oklch(0 0 0 / 0.2); color: var(--white); }
+    .panel-body { padding: 16px 20px; flex: 1; }
+
+    /* Full-screen overlays (lobby, post-game) */
+    .full-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 900;
+      background: oklch(0.12 0.03 160);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .full-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .full-overlay .bg-noise {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='80' height='80' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    .full-overlay > * { position: relative; z-index: 1; }
+    .full-overlay .lobby-card {
+      background: oklch(0.15 0.03 150 / 0.6);
+      border: 1px solid oklch(0.60 0.08 85 / 0.12);
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 480px;
+      width: 90%;
+      text-align: center;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .lobby-card h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: var(--gold);
+      margin-bottom: 4px;
+    }
+    .lobby-card .room-code {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      color: oklch(0.92 0.01 85);
+      margin: 16px 0;
+      padding: 12px;
+      background: oklch(0 0 0 / 0.2);
+      border-radius: 8px;
+      font-family: 'Inter', monospace;
+    }
+    .lobby-card .player-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 16px 0;
+      text-align: left;
+    }
+    .lobby-card .player-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: oklch(0 0 0 / 0.1);
+      border-radius: 8px;
+      font-size: 0.8rem;
+    }
+    .lobby-card .player-row .ready-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-left: auto;
+    }
+    .lobby-card .player-row .ready-dot.ready { background: var(--green); }
+    .lobby-card .player-row .ready-dot.not-ready { background: oklch(0.40 0.03 80); }
+    .lobby-card .player-row .host-badge {
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gold);
+      background: oklch(0.72 0.15 85 / 0.10);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* === Lobby polish enhancements === */
+
+    .full-overlay .lobby-card {
+      box-shadow:
+        0 0 60px oklch(0.72 0.15 85 / 0.06),
+        inset 0 1px 0 oklch(1 1 0 / 0.04);
+      animation: lobbyEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes lobbyEntrance {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .lobby-card .subtitle {
+      font-size: 0.7rem;
+      color: oklch(0.55 0.03 80);
+      margin-bottom: 16px;
+      letter-spacing: 0.04em;
+    }
+    .lobby-card .room-code {
+      position: relative;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .lobby-card .room-code:hover {
+      background: oklch(0 0 0 / 0.3);
+    }
+    .lobby-card .room-code-label {
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      margin-top: -10px;
+      margin-bottom: 16px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .lobby-card .player-row {
+      transition: background 0.15s;
+    }
+    .lobby-card .player-row:hover {
+      background: oklch(0 0 0 / 0.2);
+    }
+    .lobby-card .player-row .ready-dot {
+      width: 10px;
+      height: 10px;
+    }
+    .lobby-card .player-row.empty-slot {
+      opacity: 0.5;
+      border: 1px dashed oklch(0.60 0.08 85 / 0.12);
+      background: oklch(0 0 0 / 0.05);
+    }
+    .lobby-card .player-row.empty-slot:hover {
+      background: oklch(0 0 0 / 0.1);
+    }
+    .lobby-card .stagger-1 { animation: slideUp 0.35s 0.05s both cubic-bezier(0.16, 1, 0.3, 1); }
+    .lobby-card .stagger-2 { animation: slideUp 0.35s 0.10s both cubic-bezier(0.16, 1, 0.3, 1); }
+    .lobby-card .stagger-3 { animation: slideUp 0.35s 0.15s both cubic-bezier(0.16, 1, 0.3, 1); }
+    .lobby-card .stagger-4 { animation: slideUp 0.35s 0.20s both cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .lobby-card .player-count {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 16px;
+    }
+    .lobby-card .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    /* Lobby / post-game buttons */
+    .lobby-card .btn {
+      flex: 1;
+      height: 40px;
+      border-radius: 10px;
+      border: none;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .lobby-card .btn-primary {
+      background: var(--gold-dark);
+      color: oklch(0.10 0.02 85);
+    }
+    .lobby-card .btn-primary:hover:not(:disabled) {
+      background: var(--gold);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px oklch(0.72 0.15 85 / 0.25);
+    }
+    .lobby-card .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+    .lobby-card .btn-primary:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .lobby-card .btn-secondary {
+      background: oklch(0 0 0 / 0.15);
+      color: oklch(0.75 0.01 85);
+      border: 1px solid oklch(0.60 0.08 85 / 0.12);
+    }
+    .lobby-card .btn-secondary:hover {
+      background: oklch(0 0 0 / 0.25);
+      color: oklch(0.85 0.01 85);
+      border-color: oklch(0.60 0.08 85 / 0.2);
+    }
+    .lobby-card .btn-secondary:active {
+      transform: translateY(0);
+    }
+
+    /* Post-game specific */
+    .lobby-card .trophy {
+      font-size: 2.8rem;
+      margin-bottom: 8px;
+      line-height: 1;
+    }
+    .lobby-card .result-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      color: var(--gold);
+      margin-bottom: 4px;
+    }
+    .lobby-card .result-earnings {
+      font-size: 0.8rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    /* Settings panel items */
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid oklch(0.60 0.08 85 / 0.06);
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-label {
+      font-size: 0.78rem;
+      color: oklch(0.75 0.01 85);
+    }
+    .setting-desc {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .toggle-switch {
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background: oklch(0.35 0.03 80);
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle-switch.on { background: var(--gold-dark); }
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: oklch(0.85 0.01 85);
+      transition: transform 0.2s;
+    }
+    .toggle-switch.on::after { transform: translateX(16px); }
+    .btn-surrender {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid oklch(0.55 0.18 25 / 0.3);
+      background: oklch(0.40 0.10 25 / 0.2);
+      color: var(--danger);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Inter', system-ui, sans-serif;
+      margin-top: 12px;
+      transition: all 0.15s;
+    }
+    .btn-surrender:hover {
+      background: oklch(0.45 0.12 25 / 0.3);
+    }
+
+    /* Rules panel */
+    .rules-section {
+      margin-bottom: 16px;
+    }
+    .rules-section h3 {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: oklch(0.60 0.03 80);
+      margin-bottom: 6px;
+    }
+    .rules-section p, .rules-section li {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .rules-section ul {
+      list-style: none;
+      padding: 0;
+    }
+    .rules-section ul li {
+      padding: 3px 0;
+      padding-left: 12px;
+      position: relative;
+    }
+    .rules-section ul li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--gold-muted);
+    }
+  </style>
+</head>
+<body class="felt-bg">
+
+  <!-- ======== APP SHELL — Fixed overlays ======== -->
+
+  <!-- Lobby Screen (full-screen overlay) -->
+  <div class="full-overlay open" id="lobbyScreen">
+    <div class="bg-noise"></div>
+    <div class="lobby-card">
+      <h1>Ledger</h1>
+      <p class="subtitle">The Card Game</p>
+      <div class="room-code">ABCD-1234</div>
+      <p class="room-code-label">Room Code</p>
+
+      <div class="player-list">
+        <div class="player-row stagger-1">
+          <span style="font-weight:600;">You</span>
+          <span style="font-size:0.65rem;color:var(--text-muted);">(Host)</span>
+          <span class="host-badge" style="margin-left:auto;">Host</span>
+          <div class="ready-dot ready"></div>
+        </div>
+        <div class="player-row stagger-2">
+          <span style="font-weight:600;">jane_p</span>
+          <div class="ready-dot ready" style="margin-left:auto;"></div>
+        </div>
+        <div class="player-row stagger-3">
+          <span style="font-weight:600;">mike_cards</span>
+          <div class="ready-dot not-ready" style="margin-left:auto;"></div>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" id="lobbyStartBtn" disabled>
+          Start Game
+        </button>
+        <button class="btn btn-secondary" id="lobbyReadyBtn">
+          Ready
+        </button>
+      </div>
+      <p class="player-count">2/4 players ready  ·  Minimum 2 to start</p>
+    </div>
+  </div>
+
+  <!-- Post-Game Screen (full-screen overlay) -->
+  <div class="full-overlay" id="postGameScreen">
+    <div class="bg-noise"></div>
+    <div class="lobby-card">
+      <div class="trophy">🏆</div>
+      <div class="result-title">You Win!</div>
+      <p class="result-earnings">+2,400 LC</p>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" id="playAgainBtn">Play Again</button>
+        <button class="btn btn-secondary" id="backToLobbyBtn">Back to Lobby</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Panel -->
+  <div class="panel-overlay" id="settingsPanel">
+    <div class="panel-header">
+      <h2>⚙ Settings</h2>
+      <button class="panel-close" data-panel="settingsPanel">&times;</button>
+    </div>
+    <div class="panel-body">
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Sound Effects</div>
+          <div class="setting-desc">Card flips, chips, turn alerts</div>
+        </div>
+        <div class="toggle-switch on" data-toggle="sound"></div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Music</div>
+          <div class="setting-desc">Ambient table music</div>
+        </div>
+        <div class="toggle-switch on" data-toggle="music"></div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Animations</div>
+          <div class="setting-desc">Card and chip motion effects</div>
+        </div>
+        <div class="toggle-switch on" data-toggle="animations"></div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Compact Mode</div>
+          <div class="setting-desc">Tighter layout for smaller screens</div>
+        </div>
+        <div class="toggle-switch" data-toggle="compact"></div>
+      </div>
+      <div style="margin-top:20px;">
+        <button class="btn-surrender" id="surrenderBtn">Surrender Current Game</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rules Panel -->
+  <div class="panel-overlay" id="rulesPanel">
+    <div class="panel-header">
+      <h2>? Rules</h2>
+      <button class="panel-close" data-panel="rulesPanel">&times;</button>
+    </div>
+    <div class="panel-body">
+      <div class="rules-section">
+        <h3>Objective</h3>
+        <p>Be the last corporation remaining. Players are eliminated only through Hostile Takeover failure or Financial Collapse. No dice, no luck — every victory is earned.</p>
+      </div>
+      <div class="rules-section">
+        <h3>Turn Structure</h3>
+        <p>Each turn: <strong>Collect Income</strong> (automatic from all assets) → <strong>Actions</strong> (buy, sell, borrow, invest, negotiate, auction, takeover) → <strong>End Turn</strong>.</p>
+      </div>
+      <div class="rules-section">
+        <h3>Assets</h3>
+        <table style="width:100%;font-size:0.65rem;border-collapse:collapse;color:var(--text-secondary);">
+          <tr style="border-bottom:1px solid oklch(0.60 0.08 85 / 0.08);color:var(--text-muted);font-size:0.6rem;">
+            <th style="padding:4px 6px;text-align:left;">Asset</th>
+            <th style="padding:4px 6px;text-align:right;">Price</th>
+            <th style="padding:4px 6px;text-align:right;">Income</th>
+            <th style="padding:4px 6px;text-align:right;">Tax</th>
+            <th style="padding:4px 6px;text-align:right;">Max</th>
+          </tr>
+          <tr><td style="padding:3px 6px;">Ace</td><td style="padding:3px 6px;text-align:right;">100 LC</td><td style="padding:3px 6px;text-align:right;color:var(--gold);">+50</td><td style="padding:3px 6px;text-align:right;color:var(--danger);">-25</td><td style="padding:3px 6px;text-align:right;">1</td></tr>
+          <tr><td style="padding:3px 6px;">King</td><td style="padding:3px 6px;text-align:right;">60 LC</td><td style="padding:3px 6px;text-align:right;color:var(--gold);">+30</td><td style="padding:3px 6px;text-align:right;color:var(--danger);">-15</td><td style="padding:3px 6px;text-align:right;">2</td></tr>
+          <tr><td style="padding:3px 6px;">Queen</td><td style="padding:3px 6px;text-align:right;">40 LC</td><td style="padding:3px 6px;text-align:right;color:var(--gold);">+20</td><td style="padding:3px 6px;text-align:right;color:var(--danger);">-10</td><td style="padding:3px 6px;text-align:right;">2</td></tr>
+          <tr><td style="padding:3px 6px;">Jack</td><td style="padding:3px 6px;text-align:right;">20 LC</td><td style="padding:3px 6px;text-align:right;color:var(--gold);">+10</td><td style="padding:3px 6px;text-align:right;color:var(--danger);">-5</td><td style="padding:3px 6px;text-align:right;">3</td></tr>
+        </table>
+        <p style="margin-top:6px;">Each asset pays itself back in ~4 profitable rounds. Sell to Bank at 50% of purchase price (emergency only).</p>
+      </div>
+      <div class="rules-section">
+        <h3>Taxes</h3>
+        <p>After every full round (all players have played), everyone pays taxes simultaneously based on owned assets. If you cannot pay, you enter <strong>Financial Distress</strong> — sell, borrow, or seek investments to recover.</p>
+      </div>
+      <div class="rules-section">
+        <h3>Loans</h3>
+        <p>Borrow up to <strong>120 LC</strong> anytime during your turn. <strong>50% interest</strong>, repay within <strong>3 rounds</strong>. One active loan at a time. Default → Financial Distress → potential Bankruptcy.</p>
+      </div>
+      <div class="rules-section">
+        <h3>Investments</h3>
+        <p>Any player can invest in another. Terms are <strong>fully negotiated</strong> — amount, repayment, deadline, conditions. All deals are enforced by the game. No scams.</p>
+      </div>
+      <div class="rules-section">
+        <h3>Hostile Takeovers</h3>
+        <p>Requires <strong>120 LC</strong> minimum wealth. Pay <strong>40 LC filing fee</strong> (nonrefundable). Target gets one full round to defend. If they reach the required LC reserve, the takeover fails. If they can't, they're eliminated — attacker takes one asset + small reward.</p>
+      </div>
+      <div class="rules-section">
+        <h3>Corporate Expansion</h3>
+        <p>Once most assets are player-owned, anyone can call a vote. Simple majority passes. YES voters each pay <strong>10 LC</strong>. A fresh batch of assets enters the market. Maximum one expansion per game.</p>
+      </div>
+      <div class="rules-section">
+        <h3>Elimination & Bankruptcy</h3>
+        <p>If you cannot meet a mandatory payment (taxes, loan repayment, takeover defense) after exhausting all recovery options, you're eliminated. No score — only survival.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar (always visible) -->
+  <nav class="sidebar" id="appSidebar">
+    <div class="sidebar-logo" title="Home">L</div>
+    <button class="sidebar-btn" data-panel="settingsPanel" title="Settings">
+      ⚙<span class="tooltip">Settings</span>
+    </button>
+    <button class="sidebar-btn" data-panel="rulesPanel" title="Rules">
+      ?<span class="tooltip">Rules</span>
+    </button>
+    <div class="sidebar-divider"></div>
+    <button class="sidebar-btn" id="sidebarHomeBtn" title="Lobby">
+      ⌂<span class="tooltip">Lobby</span>
+    </button>
+    <div class="sidebar-spacer"></div>
+    <button class="sidebar-btn" id="sidebarFullscreenBtn" title="Fullscreen">
+      ⛶<span class="tooltip">Fullscreen</span>
+    </button>
+  </nav>
+
+  <!-- ============================================
+       STATUS BAR
+       ============================================ -->
+  <header style="position: sticky; top: 0; z-index: var(--z-sticky); border-bottom: 1px solid oklch(0.60 0.08 85 / 0.08); background: oklch(0.10 0.02 150 / 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); margin-left: 48px; height: 36px;">
+    <div style="max-width: 1440px; margin: 0 auto; padding: 0 20px; height: 36px; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="turn-orb pulse" style="width: 6px; height: 6px;"></div>
+        <span style="font-size: 0.7rem; font-weight: 600; color: var(--gold);">Your Turn</span>
+        <span style="font-size: 0.65rem; color: var(--text-muted);">·</span>
+        <span style="font-size: 0.65rem; color: var(--text-secondary);">Round IV</span>
+        <span style="font-size: 0.65rem; color: var(--text-muted);">·</span>
+        <span style="font-size: 0.65rem; color: var(--text-secondary); font-style: italic;">Expansion Era</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;">Stack</span>
+        <span style="font-size: 0.8rem; font-weight: 700; color: var(--gold-dark);">240 LC</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================
+       MAIN LAYOUT
+       ============================================ -->
+  <div style="max-width: 1440px; margin: 0 auto; padding: 24px 24px 48px; margin-left: 48px;">
+
+    <!-- === STATUS BAR: Era + Round + Tax Countdown === -->
+    <div class="panel anim-fade" style="padding: 14px 20px; margin-bottom: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: oklch(0.55 0.15 150 / 0.12); border: 1px solid oklch(0.55 0.15 150 / 0.2); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: var(--success);">IV</div>
+          <div>
+            <div style="font-size: 0.7rem; font-weight: 600; color: var(--text); font-family: 'Playfair Display', serif;">Expansion Era</div>
+            <div style="font-size: 0.6rem; color: var(--text-muted); display: flex; gap: 8px; margin-top: 1px;">
+              <span>Round 4 of 12</span>
+              <span>·</span>
+              <span>2 of 6 played</span>
+            </div>
+          </div>
+        </div>
+        <div style="width: 1px; height: 28px; background: oklch(0.60 0.08 85 / 0.12);"></div>
+        <!-- Tax Countdown — NEW -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"><polyline points="12 2 12 12 16 14"/><circle cx="12" cy="12" r="10"/></svg>
+          <span style="font-size: 0.68rem; color: var(--text-secondary);">Taxes due in</span>
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--gold);">2 rounds</span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span style="font-size: 0.85rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text);">02:34</span>
+        <button class="btn-gold" style="font-size: 0.72rem; padding: 7px 18px;">End Turn</button>
+      </div>
+    </div>
+
+    <!-- === MAIN GRID === -->
+    <div class="main-grid" style="display: grid; grid-template-columns: 1fr 340px; gap: 24px;">
+
+      <!-- ====== LEFT COLUMN ====== -->
+      <div style="display: flex; flex-direction: column; gap: 28px;">
+
+        <!-- YOUR PROFILE / CHIP SUMMARY -->
+        <div class="panel panel-gold anim-slide-up stagger-1" style="padding: 20px;">
+          <div class="corner corner-tl"></div>
+          <div class="corner corner-tr"></div>
+          <div class="corner corner-bl"></div>
+          <div class="corner corner-br"></div>
+          <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--gold-dark); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.3rem; color: oklch(0.12 0.02 85); border: 1px solid var(--gold);">A</div>
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h1 style="font-size: 1.15rem; font-weight: 700;">Apex Corp</h1>
+                <span class="health-badge healthy"><span class="dot"></span>Healthy</span>
+              </div>
+              <p style="font-size: 0.68rem; color: var(--text-muted);">Your corporation · CEO: You</p>
+            </div>
+            <button class="btn-ghost" style="font-size: 0.65rem; padding: 6px 12px;">Surrender</button>
+          </div>
+
+          <!-- Chip Stack Display — Ledger Tokens -->
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+            <div style="text-align: center; background: oklch(0 0 0 / 0.12); border-radius: 10px; padding: 12px 8px;">
+              <div class="chip chip-gold anim-chip stagger-1" style="margin: 0 auto 6px;">
+                <span class="chip-icon">✦</span>
+                <span class="chip-value">240</span>
+              </div>
+              <div style="font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);">Balance</div>
+            </div>
+            <div style="text-align: center; background: oklch(0 0 0 / 0.12); border-radius: 10px; padding: 12px 8px;">
+              <div class="chip chip-green anim-chip stagger-2" style="margin: 0 auto 6px;">
+                <span class="chip-icon">▲</span>
+                <span class="chip-value">+70</span>
+              </div>
+              <div style="font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);">Income</div>
+            </div>
+            <div style="text-align: center; background: oklch(0 0 0 / 0.12); border-radius: 10px; padding: 12px 8px;">
+              <div class="chip chip-red anim-chip stagger-3" style="margin: 0 auto 6px;">
+                <span class="chip-icon">▼</span>
+                <span class="chip-value">-35</span>
+              </div>
+              <div style="font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);">Tax</div>
+            </div>
+            <div style="text-align: center; background: oklch(0 0 0 / 0.12); border-radius: 10px; padding: 12px 8px;">
+              <div class="chip chip-blue anim-chip stagger-4" style="margin: 0 auto 6px;">
+                <span class="chip-icon">◈</span>
+                <span class="chip-value">420</span>
+              </div>
+              <div style="font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);">Net Worth</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- YOUR HAND — Playing Cards -->
+        <div class="anim-slide-up stagger-2">
+          <div class="ornament" style="margin-bottom: 14px;">
+            <span style="font-weight: 700; font-size: 0.85rem; color: var(--gold); letter-spacing: 0.03em; font-family: 'Playfair Display', serif;">Your Hand</span>
+            <span style="font-size: 0.6rem; color: var(--text-muted);">4 assets · 180 LC value</span>
+          </div>
+          <div class="card-grid-4" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+            <!-- Jack x3 — Playing Card -->
+            <div class="playing-card owned anim-deal stagger-1">
+              <div class="card-corner card-corner-tl suit-spade">
+                <span class="rank">J</span>
+                <span class="suit">♠</span>
+              </div>
+              <div class="card-corner card-corner-br suit-spade">
+                <span class="rank">J</span>
+                <span class="suit">♠</span>
+              </div>
+              <svg class="card-face-svg suit-spade" viewBox="0 0 100 120" fill="none">
+                <line x1="30" y1="52" x2="46" y2="95" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="70" y1="52" x2="54" y2="95" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="30" cy="50" r="4.5" stroke="currentColor" stroke-width="2"/>
+                <circle cx="70" cy="50" r="4.5" stroke="currentColor" stroke-width="2"/>
+                <polygon points="50,58 55,66 50,74 45,66" fill="currentColor" opacity="0.5"/>
+                <line x1="26" y1="78" x2="74" y2="78" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+              </svg>
+              <div style="font-size: 0.65rem; font-weight: 600; color: oklch(0.25 0.02 85);">Jack</div>
+              <div class="card-stats">
+                <span style="color: var(--success);">+10</span>
+                <span style="color: var(--danger);">-5</span>
+              </div>
+              <div class="owned-badge spade">3</div>
+            </div>
+            <!-- Queen x1 — Playing Card -->
+            <div class="playing-card owned anim-deal stagger-2">
+              <div class="card-corner card-corner-tl suit-heart">
+                <span class="rank">Q</span>
+                <span class="suit">♥</span>
+              </div>
+              <div class="card-corner card-corner-br suit-heart">
+                <span class="rank">Q</span>
+                <span class="suit">♥</span>
+              </div>
+              <svg class="card-face-svg suit-heart" viewBox="0 0 100 120" fill="none">
+                <path d="M14,95 L10,95 L10,78 Q30,52 50,48 Q70,52 90,78 L90,95 L86,95 Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+                <circle cx="50" cy="48" r="5.5" fill="currentColor" opacity="0.6"/>
+                <circle cx="28" cy="64" r="3.5" fill="currentColor" opacity="0.4"/>
+                <circle cx="72" cy="64" r="3.5" fill="currentColor" opacity="0.4"/>
+                <line x1="14" y1="78" x2="10" y2="94" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
+                <circle cx="10" cy="95" r="3" fill="currentColor" opacity="0.25"/>
+                <line x1="86" y1="78" x2="90" y2="94" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
+                <circle cx="90" cy="95" r="3" fill="currentColor" opacity="0.25"/>
+                <line x1="18" y1="92" x2="82" y2="92" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+              <div style="font-size: 0.65rem; font-weight: 600; color: oklch(0.25 0.02 85);">Queen</div>
+              <div class="card-stats">
+                <span style="color: var(--success);">+20</span>
+                <span style="color: var(--danger);">-10</span>
+              </div>
+              <div class="owned-badge heart">1</div>
+            </div>
+            <!-- King x1 — Playing Card -->
+            <div class="playing-card owned anim-deal stagger-3">
+              <div class="card-corner card-corner-tl suit-club">
+                <span class="rank">K</span>
+                <span class="suit">♣</span>
+              </div>
+              <div class="card-corner card-corner-br suit-club">
+                <span class="rank">K</span>
+                <span class="suit">♣</span>
+              </div>
+              <svg class="card-face-svg suit-club" viewBox="0 0 100 120" fill="none">
+                <path d="M20,95 L16,95 L16,75 L28,82 L35,66 L40,69 L50,56 L60,69 L65,66 L72,82 L84,75 L84,95 L80,95 Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+                <circle cx="50" cy="67" r="5" fill="currentColor" opacity="0.6"/>
+                <circle cx="28" cy="82" r="3.5" fill="currentColor" opacity="0.4"/>
+                <circle cx="72" cy="82" r="3.5" fill="currentColor" opacity="0.4"/>
+                <line x1="22" y1="92" x2="78" y2="92" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="34" cy="95" r="2" fill="currentColor" opacity="0.25"/>
+                <circle cx="50" cy="95" r="2" fill="currentColor" opacity="0.25"/>
+                <circle cx="66" cy="95" r="2" fill="currentColor" opacity="0.25"/>
+              </svg>
+              <div style="font-size: 0.65rem; font-weight: 600; color: oklch(0.25 0.02 85);">King</div>
+              <div class="card-stats">
+                <span style="color: var(--success);">+30</span>
+                <span style="color: var(--danger);">-15</span>
+              </div>
+              <div class="owned-badge club">1</div>
+            </div>
+            <!-- Ace — Empty Slot -->
+            <div class="empty-slot anim-deal stagger-4">
+              <span style="font-size: 1.4rem; opacity: 0.3;">♦</span>
+              <span>Ace Slot</span>
+              <span style="font-size: 0.5rem;">Limit 1</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- THE MARKET — Available Cards -->
+        <div class="anim-slide-up stagger-3">
+          <div class="ornament" style="margin-bottom: 14px;">
+            <span style="font-weight: 700; font-size: 0.85rem; color: var(--gold); letter-spacing: 0.03em; font-family: 'Playfair Display', serif;">The Market</span>
+            <span style="font-size: 0.6rem; color: var(--text-muted);">Bank supply · Unlimited</span>
+          </div>
+          <div class="card-grid-4" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+            <!-- Jack -->
+            <div class="market-card anim-deal stagger-1" style="position: relative;">
+              <div class="card-corner card-corner-tl suit-spade" style="font-size: 0.65rem;">
+                <span class="rank" style="font-size: 0.7rem;">J</span>
+                <span class="suit" style="font-size: 0.5rem;">♠</span>
+              </div>
+              <svg class="card-face-svg suit-spade" viewBox="0 0 100 120" fill="none" style="width: 56%; margin-bottom: 1px;">
+                <line x1="30" y1="52" x2="46" y2="95" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="70" y1="52" x2="54" y2="95" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="30" cy="50" r="4.5" stroke="currentColor" stroke-width="2"/>
+                <circle cx="70" cy="50" r="4.5" stroke="currentColor" stroke-width="2"/>
+                <polygon points="50,58 55,66 50,74 45,66" fill="currentColor" opacity="0.5"/>
+                <line x1="26" y1="78" x2="74" y2="78" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+              </svg>
+              <div style="font-size: 0.7rem; font-weight: 700; color: oklch(0.25 0.02 85);">Jack</div>
+              <div style="font-size: 0.65rem; font-weight: 600; color: var(--gold-dark); margin: 2px 0;">20 LC</div>
+              <div style="font-size: 0.5rem; color: var(--text-muted); display: flex; gap: 8px; margin-bottom: 8px;">
+                <span style="color: var(--success);">+10</span>
+                <span style="color: var(--danger);">-5</span>
+                <span>Max 3</span>
+              </div>
+              <button class="btn-gold" style="font-size: 0.6rem; padding: 5px 14px; width: 80%;">Buy</button>
+            </div>
+            <!-- Queen -->
+            <div class="market-card anim-deal stagger-2" style="position: relative;">
+              <div class="card-corner card-corner-tl suit-heart" style="font-size: 0.65rem;">
+                <span class="rank" style="font-size: 0.7rem;">Q</span>
+                <span class="suit" style="font-size: 0.5rem;">♥</span>
+              </div>
+              <svg class="card-face-svg suit-heart" viewBox="0 0 100 120" fill="none" style="width: 56%; margin-bottom: 1px;">
+                <path d="M14,95 L10,95 L10,78 Q30,52 50,48 Q70,52 90,78 L90,95 L86,95 Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+                <circle cx="50" cy="48" r="5.5" fill="currentColor" opacity="0.6"/>
+                <circle cx="28" cy="64" r="3.5" fill="currentColor" opacity="0.4"/>
+                <circle cx="72" cy="64" r="3.5" fill="currentColor" opacity="0.4"/>
+                <line x1="14" y1="78" x2="10" y2="94" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
+                <circle cx="10" cy="95" r="3" fill="currentColor" opacity="0.25"/>
+                <line x1="86" y1="78" x2="90" y2="94" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
+                <circle cx="90" cy="95" r="3" fill="currentColor" opacity="0.25"/>
+                <line x1="18" y1="92" x2="82" y2="92" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+              <div style="font-size: 0.7rem; font-weight: 700; color: oklch(0.25 0.02 85);">Queen</div>
+              <div style="font-size: 0.65rem; font-weight: 600; color: var(--gold-dark); margin: 2px 0;">40 LC</div>
+              <div style="font-size: 0.5rem; color: var(--text-muted); display: flex; gap: 8px; margin-bottom: 8px;">
+                <span style="color: var(--success);">+20</span>
+                <span style="color: var(--danger);">-10</span>
+                <span>Max 2</span>
+              </div>
+              <button class="btn-gold" style="font-size: 0.6rem; padding: 5px 14px; width: 80%;">Buy</button>
+            </div>
+            <!-- King -->
+            <div class="market-card anim-deal stagger-3" style="position: relative;">
+              <div class="card-corner card-corner-tl suit-club" style="font-size: 0.65rem;">
+                <span class="rank" style="font-size: 0.7rem;">K</span>
+                <span class="suit" style="font-size: 0.5rem;">♣</span>
+              </div>
+              <svg class="card-face-svg suit-club" viewBox="0 0 100 120" fill="none" style="width: 56%; margin-bottom: 1px;">
+                <path d="M20,95 L16,95 L16,75 L28,82 L35,66 L40,69 L50,56 L60,69 L65,66 L72,82 L84,75 L84,95 L80,95 Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+                <circle cx="50" cy="67" r="5" fill="currentColor" opacity="0.6"/>
+                <circle cx="28" cy="82" r="3.5" fill="currentColor" opacity="0.4"/>
+                <circle cx="72" cy="82" r="3.5" fill="currentColor" opacity="0.4"/>
+                <line x1="22" y1="92" x2="78" y2="92" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="34" cy="95" r="2" fill="currentColor" opacity="0.25"/>
+                <circle cx="50" cy="95" r="2" fill="currentColor" opacity="0.25"/>
+                <circle cx="66" cy="95" r="2" fill="currentColor" opacity="0.25"/>
+              </svg>
+              <div style="font-size: 0.7rem; font-weight: 700; color: oklch(0.25 0.02 85);">King</div>
+              <div style="font-size: 0.65rem; font-weight: 600; color: var(--gold-dark); margin: 2px 0;">60 LC</div>
+              <div style="font-size: 0.5rem; color: var(--text-muted); display: flex; gap: 8px; margin-bottom: 8px;">
+                <span style="color: var(--success);">+30</span>
+                <span style="color: var(--danger);">-15</span>
+                <span>Max 2</span>
+              </div>
+              <button class="btn-gold" style="font-size: 0.6rem; padding: 5px 14px; width: 80%;">Buy</button>
+            </div>
+            <!-- Ace -->
+            <div class="market-card anim-deal stagger-4" style="position: relative;">
+              <div class="card-corner card-corner-tl suit-diamond" style="font-size: 0.65rem;">
+                <span class="rank" style="font-size: 0.7rem;">A</span>
+                <span class="suit" style="font-size: 0.5rem;">♦</span>
+              </div>
+              <svg class="card-face-svg suit-diamond" viewBox="0 0 100 120" fill="none" style="width: 56%; margin-bottom: 1px;">
+                <polygon points="50,42 64,60 50,78 36,60" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+                <polygon points="50,48 57,60 50,72 43,60" fill="currentColor" opacity="0.3"/>
+                <path d="M36,60 Q25,52 20,56 Q25,60 36,60" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+                <path d="M64,60 Q75,52 80,56 Q75,60 64,60" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+                <path d="M36,60 Q25,68 20,64 Q25,60 36,60" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+                <path d="M64,60 Q75,68 80,64 Q75,60 64,60" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+                <circle cx="50" cy="60" r="3" fill="currentColor" opacity="0.5"/>
+              </svg>
+              <div style="font-size: 0.7rem; font-weight: 700; color: oklch(0.25 0.02 85);">Ace</div>
+              <div style="font-size: 0.65rem; font-weight: 600; color: var(--gold-dark); margin: 2px 0;">100 LC</div>
+              <div style="font-size: 0.5rem; color: var(--text-muted); display: flex; gap: 8px; margin-bottom: 8px;">
+                <span style="color: var(--success);">+50</span>
+                <span style="color: var(--danger);">-25</span>
+                <span>Max 1</span>
+              </div>
+              <button class="btn-gold" style="font-size: 0.6rem; padding: 5px 14px; width: 80%;">Buy</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIONS BAR — Full action set -->
+        <div class="panel panel-gold anim-slide-up stagger-4" style="padding: 14px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;">
+          <div class="corner corner-tl"></div>
+          <div class="corner corner-tr"></div>
+          <div class="corner corner-bl"></div>
+          <div class="corner corner-br"></div>
+          <span style="font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); padding: 0 6px;">Actions</span>
+          <div style="width: 1px; height: 20px; background: oklch(0.60 0.08 85 / 0.12);"></div>
+          <button class="btn-ghost" style="font-size: 0.7rem; padding: 6px 12px;">Buy</button>
+          <button class="btn-ghost" style="font-size: 0.7rem; padding: 6px 12px;">Sell</button>
+          <button class="btn-ghost" style="font-size: 0.7rem; padding: 6px 12px;">Trade</button>
+          <button class="btn-ghost" style="font-size: 0.7rem; padding: 6px 12px;">Auction</button>
+          <button class="btn-ghost" style="font-size: 0.7rem; padding: 6px 12px;">Borrow</button>
+          <button class="btn-ghost" style="font-size: 0.7rem; padding: 6px 12px;">Repay</button>
+          <button class="btn-ghost" style="font-size: 0.7rem; padding: 6px 12px;">Invest</button>
+          <div style="width: 1px; height: 20px; background: oklch(0.60 0.08 85 / 0.12);"></div>
+          <button class="btn-danger" style="font-size: 0.7rem; padding: 6px 14px;">Takeover</button>
+          <!-- Emergency Sale — NEW -->
+          <button class="btn-ghost" style="font-size: 0.7rem; padding: 6px 12px; color: var(--orange); border-color: oklch(0.58 0.16 45 / 0.2);">Emergency Sale (50%)</button>
+        </div>
+
+        <!-- === DISTRESS + LOAN + INVESTMENTS SUMMARY ROW (NEW) === -->
+        <div class="anim-slide-up stagger-5" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <!-- Loan Summary — Glassmorphism -->
+          <div class="panel-glass" style="padding: 14px 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 0.65rem; font-weight: 600; color: var(--text);">Active Loan</span>
+              <span class="tag" style="background: oklch(0.70 0.18 75 / 0.12); color: var(--warning);">2 rounds left</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-secondary);">
+              <span>Principal: <strong style="color: var(--text);">80 LC</strong></span>
+              <span>Interest (50%): <strong style="color: var(--gold);">40 LC</strong></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-secondary); margin-top: 2px;">
+              <span>Total due: <strong style="color: var(--danger);">120 LC</strong></span>
+            </div>
+            <div class="track" style="margin-top: 8px;">
+              <div class="track-fill" style="width: 33%; background: var(--gold);"></div>
+            </div>
+          </div>
+          <!-- Investment Summary — Glassmorphism -->
+          <div class="panel-glass" style="padding: 14px 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 0.65rem; font-weight: 600; color: var(--text);">Investments</span>
+              <span class="tag" style="background: oklch(0.55 0.15 150 / 0.10); color: var(--success);">1 active</span>
+            </div>
+            <div style="font-size: 0.68rem; color: var(--text-muted); margin-bottom: 4px;">
+              <span style="color: var(--text-secondary);">To: </span><strong style="color: var(--text);">Nexus Corp</strong>
+              <span style="color: var(--text-secondary);"> · 40 LC · Due Round 6</span>
+            </div>
+            <div style="font-size: 0.68rem; color: var(--text-muted);">
+              <span style="color: var(--text-secondary);">From: </span><strong style="color: var(--text);">—</strong>
+              <span style="color: var(--text-muted);"> No incoming</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CORPORATE EXPANSION — Glassmorphism -->
+        <div class="panel-glass anim-slide-up stagger-5" style="padding: 12px 16px; border-color: oklch(0.55 0.15 150 / 0.15);">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <div>
+                <span style="font-size: 0.72rem; font-weight: 600; color: var(--success);">Corporate Expansion Available</span>
+                <p style="font-size: 0.6rem; color: var(--text-muted); margin-top: 1px;">A new asset batch can be unlocked. Vote costs 10 LC for YES voters.</p>
+              </div>
+            </div>
+            <button class="btn-gold" style="font-size: 0.65rem; padding: 6px 16px;">Propose Vote</button>
+          </div>
+        </div>
+
+        <!-- CHRONICLE (Game Log) — Glassmorphism -->
+        <div class="panel-glass anim-slide-up stagger-6" style="padding: 16px 18px;">
+          <div class="ornament" style="margin-bottom: 12px;">
+            <span style="font-weight: 700; font-size: 0.8rem; color: var(--gold); letter-spacing: 0.03em; font-family: 'Playfair Display', serif;">Chronicle</span>
+          </div>
+          <div style="max-height: 260px; overflow-y: auto;">
+            <div class="log-entry">
+              <div class="log-dot" style="background: var(--success);"></div>
+              <span style="font-size: 0.5rem; color: var(--text-muted); font-family: monospace; margin-top: 3px;">12:34</span>
+              <div style="font-size: 0.68rem;"><strong style="color: var(--text);">Apex Corp</strong> <span style="color: var(--text-muted);">purchased</span> <span class="suit-spade" style="font-weight: 600;">♠ Jack</span></div>
+            </div>
+            <div class="log-entry">
+              <div class="log-dot" style="background: var(--warning);"></div>
+              <span style="font-size: 0.5rem; color: var(--text-muted); font-family: monospace; margin-top: 3px;">12:28</span>
+              <div style="font-size: 0.68rem;"><strong style="color: var(--text);">Ironhold Ltd</strong> <span style="color: var(--text-muted);">borrowed</span> <strong style="color: var(--gold);">80 LC</strong></div>
+            </div>
+            <div class="log-entry">
+              <div class="log-dot" style="background: var(--danger);"></div>
+              <span style="font-size: 0.5rem; color: var(--text-muted); font-family: monospace; margin-top: 3px;">12:15</span>
+              <div style="font-size: 0.68rem;"><strong style="color: var(--danger);">Tax Collection</strong> <span style="color: var(--text-muted);">— all obligations settled</span></div>
+            </div>
+            <div class="log-entry">
+              <div class="log-dot" style="background: var(--success);"></div>
+              <span style="font-size: 0.5rem; color: var(--text-muted); font-family: monospace; margin-top: 3px;">11:52</span>
+              <div style="font-size: 0.68rem;"><strong style="color: var(--text);">Apex Corp</strong> <span style="color: var(--text-muted);">collected</span> <strong style="color: var(--success);">+70 LC</strong> <span style="color: var(--text-muted);">income</span></div>
+            </div>
+            <div class="log-entry">
+              <div class="log-dot" style="background: var(--danger);"></div>
+              <span style="font-size: 0.5rem; color: var(--text-muted); font-family: monospace; margin-top: 3px;">11:44</span>
+              <div style="font-size: 0.68rem;"><strong style="color: var(--danger);">Takeover Filed</strong> <span style="color: var(--text-muted);">— Storm Inc → Nexus Corp</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== RIGHT COLUMN ====== -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+
+        <!-- PLAYER PROFILE CARD (Detailed) -->
+        <div class="panel panel-gold anim-slide-right stagger-3" style="padding: 20px; position: relative;">
+          <div class="corner corner-tl"></div>
+          <div class="corner corner-tr"></div>
+          <div class="corner corner-bl"></div>
+          <div class="corner corner-br"></div>
+          <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 14px;">
+            <div style="width: 50px; height: 50px; border-radius: 12px; background: var(--gold-dark); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.4rem; color: oklch(0.12 0.02 85); border: 1px solid var(--gold);">A</div>
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1rem; font-weight: 700;">Apex Corp</span>
+                <span class="health-badge healthy"><span class="dot"></span>Healthy</span>
+              </div>
+              <p style="font-size: 0.65rem; color: var(--text-muted);">Your corporation</p>
+            </div>
+          </div>
+
+          <!-- Detailed Stats -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px;">
+            <div style="background: oklch(0 0 0 / 0.10); border-radius: 8px; padding: 10px; text-align: center;">
+              <div style="font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);">Liquid LC</div>
+              <div style="font-size: 1.1rem; font-weight: 700; color: var(--gold);">240</div>
+            </div>
+            <div style="background: oklch(0 0 0 / 0.10); border-radius: 8px; padding: 10px; text-align: center;">
+              <div style="font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);">Asset Value</div>
+              <div style="font-size: 1.1rem; font-weight: 700; color: var(--text);">180</div>
+            </div>
+            <div style="background: oklch(0 0 0 / 0.10); border-radius: 8px; padding: 10px; text-align: center;">
+              <div style="font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);">Income</div>
+              <div style="font-size: 1.1rem; font-weight: 700; color: var(--success);">+70</div>
+            </div>
+            <div style="background: oklch(0 0 0 / 0.10); border-radius: 8px; padding: 10px; text-align: center;">
+              <div style="font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);">Tax Burden</div>
+              <div style="font-size: 1.1rem; font-weight: 700; color: var(--danger);">-35</div>
+            </div>
+          </div>
+
+          <!-- Net worth bar -->
+          <div style="margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--text-muted); margin-bottom: 4px;">
+              <span>Net Worth</span>
+              <span style="font-weight: 600; color: var(--text);">420 LC</span>
+            </div>
+            <div class="track">
+              <div class="track-fill" style="width: 60%; background: linear-gradient(90deg, var(--gold-dark), var(--gold));"></div>
+            </div>
+          </div>
+
+          <!-- Portfolio breakdown — NEW -->
+          <div style="border-top: 1px solid oklch(0.60 0.08 85 / 0.10); padding-top: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--text-muted); margin-bottom: 4px;">
+              <span>Portfolio</span>
+              <span style="color: var(--text-secondary);">3 assets of 8 max</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <span class="tag bg-suit-spade suit-spade">♠×3</span>
+              <span class="tag bg-suit-heart suit-heart">♥×1</span>
+              <span class="tag bg-suit-club suit-club">♣×1</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- OPPONENTS AT THE TABLE -->
+        <div class="anim-slide-right stagger-4">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding: 0 4px;">
+            <span style="font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);">At the Table</span>
+            <span style="font-size: 0.6rem; color: var(--text-muted);">4 / 6 seated</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <!-- Ironhold Ltd — Active -->
+            <div class="player-row active-turn anim-slide-up stagger-1">
+              <div class="player-avatar" style="background: linear-gradient(135deg, #475569, #1e293b);">I</div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 0.8rem; font-weight: 600; color: var(--text);">Ironhold Ltd</span>
+                  <span class="health-badge stressed"><span class="dot"></span>Stressed</span>
+                  <span style="font-size: 0.45rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); background: oklch(0.72 0.15 85 / 0.10); padding: 1px 7px; border-radius: 99px; border: 1px solid oklch(0.72 0.15 85 / 0.15);">Turn</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 0.65rem; color: var(--text-muted); margin-top: 1px;">
+                  <span style="color: var(--gold); font-weight: 600;">180</span>
+                  <span style="color: var(--success);">+40</span>
+                  <span style="color: var(--danger);">-20</span>
+                  <span>·</span>
+                  <span class="suit-spade">♠2</span> <span class="suit-heart">♥1</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Storm Inc -->
+            <div class="player-row anim-slide-up stagger-2">
+              <div class="player-avatar" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">S</div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 0.8rem; font-weight: 600; color: var(--text);">Storm Inc</span>
+                  <span class="health-badge healthy"><span class="dot"></span>Healthy</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 0.65rem; color: var(--text-muted); margin-top: 1px;">
+                  <span style="color: var(--gold); font-weight: 600;">420</span>
+                  <span style="color: var(--success);">+90</span>
+                  <span style="color: var(--danger);">-45</span>
+                  <span>·</span>
+                  <span class="suit-spade">♠3</span> <span class="suit-heart">♥1</span> <span class="suit-club">♣1</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Nexus Corp — Critical -->
+            <div class="player-row anim-slide-up stagger-3" style="border: 1px solid transparent; border-color: oklch(0.55 0.20 30 / 0.2);">
+              <div class="player-avatar" style="background: linear-gradient(135deg, #dc2626, #991b1b);">N</div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 0.8rem; font-weight: 600; color: var(--text);">Nexus Corp</span>
+                  <span class="health-badge critical"><span class="dot"></span>Critical</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 0.65rem; color: var(--text-muted); margin-top: 1px;">
+                  <span style="color: var(--gold); font-weight: 600;">60</span>
+                  <span style="color: var(--success);">+10</span>
+                  <span style="color: var(--danger);">-5</span>
+                  <span>·</span>
+                  <span class="suit-spade">♠1</span>
+                </div>
+              </div>
+              <!-- Distress badge — NEW -->
+              <span class="tag" style="background: var(--danger-bg); color: var(--danger);">Distress</span>
+            </div>
+
+            <!-- Cipher Co — Eliminated -->
+            <div class="player-row eliminated anim-slide-up stagger-4">
+              <div class="player-avatar" style="background: linear-gradient(135deg, #64748b, #475569);">C</div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 0.8rem; font-weight: 600; color: oklch(0.50 0.02 80);">Cipher Co</span>
+                  <span class="tag" style="background: oklch(0.55 0.20 30 / 0.08); color: var(--text-muted);">Eliminated</span>
+                </div>
+                <div style="font-size: 0.62rem; color: oklch(0.45 0.02 80);">Bankrupt — Round 3 · 4 rounds ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAKEOVER DEFENSE PANEL — NEW -->
+        <div class="panel anim-scale-in" style="padding: 14px 16px; border-color: oklch(0.55 0.20 30 / 0.25); background: oklch(0.28 0.10 25 / 0.15);">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17h.01"/><path d="M18.364 5.636a9 9 0 1 1-12.728 0 9 9 0 0 1 12.728 0z"/></svg>
+            <div>
+              <div style="font-size: 0.72rem; font-weight: 700; color: var(--danger);">Hostile Takeover</div>
+              <p style="font-size: 0.6rem; color: var(--text-muted);">Storm Inc vs Nexus Corp · Defense active</p>
+            </div>
+          </div>
+          <!-- Defense progress — NEW -->
+          <div style="background: oklch(0 0 0 / 0.15); border-radius: 8px; padding: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--text-muted); margin-bottom: 4px;">
+              <span>Target Required: <strong style="color: var(--text);">120 LC</strong></span>
+              <span>Current: <strong style="color: var(--danger);">60 LC</strong></span>
+            </div>
+            <div class="track" style="background: oklch(0 0 0 / 0.2);">
+              <div class="track-fill" style="width: 50%; background: var(--danger);"></div>
+            </div>
+            <div style="font-size: 0.55rem; color: var(--text-muted); margin-top: 6px;">Nexus Corp must reach required reserve before their next turn. Table negotiations frozen.</div>
+          </div>
+        </div>
+
+        <!-- NEGOTIATIONS (Chat) — Glassmorphism -->
+        <div class="panel-glass anim-slide-right stagger-5" style="display: flex; flex-direction: column; height: 300px;">
+          <div style="padding: 14px 16px; border-bottom: 1px solid oklch(0.60 0.08 85 / 0.10); display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 0.72rem; font-weight: 600;">Negotiations</span>
+              <span class="tag" style="background: oklch(0.72 0.15 85 / 0.10); color: var(--gold);">Private</span>
+            </div>
+            <span style="font-size: 0.55rem; color: var(--text-muted);">Free</span>
+          </div>
+          <div style="flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; align-items: flex-start; gap: 6px;">
+              <span style="font-size: 0.65rem; font-weight: 700; color: #475569; min-width: 20px;">I:</span>
+              <p style="font-size: 0.68rem; color: var(--text-secondary);">"Anyone selling a Queen? I'll pay 45 LC."</p>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 6px;">
+              <span style="font-size: 0.65rem; font-weight: 700; color: #a855f7; min-width: 20px;">S:</span>
+              <p style="font-size: 0.68rem; color: var(--text-secondary);">"I'll sell you mine for 50. Final."</p>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 6px;">
+              <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); min-width: 20px;">†</span>
+              <p style="font-size: 0.68rem; color: var(--text-muted); font-style: italic;">Taxes due in 2 rounds.</p>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 6px;">
+              <span style="font-size: 0.65rem; font-weight: 700; color: #dc2626; min-width: 20px;">N:</span>
+              <p style="font-size: 0.68rem; color: var(--text-secondary);">"40 LC urgently. Repay 60 in 2 rounds. Anyone?"</p>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 6px;">
+              <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); min-width: 20px;">†</span>
+              <p style="font-size: 0.68rem; color: var(--danger); font-style: italic; font-weight: 500;">Negotiations frozen — Takeover in progress.</p>
+            </div>
+          </div>
+          <div style="padding: 10px 16px; border-top: 1px solid oklch(0.60 0.08 85 / 0.10);">
+            <div style="display: flex; gap: 8px;">
+              <input type="text" placeholder="Your message..." class="chat-input" disabled />
+              <button class="btn-gold" style="font-size: 0.7rem; padding: 8px 14px;" disabled>Send</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAX RATES REFERENCE — Glassmorphism -->
+        <div class="panel-glass anim-slide-right stagger-6" style="padding: 14px 16px;">
+          <div style="font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px;">Tax Schedule</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 0.6rem;">
+            <div style="display: flex; justify-content: space-between; padding: 3px 6px; border-radius: 4px; background: oklch(0 0 0 / 0.08);">
+              <span class="suit-spade">♠ Jack</span>
+              <span style="color: var(--danger);">-5</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 3px 6px; border-radius: 4px; background: oklch(0 0 0 / 0.08);">
+              <span class="suit-heart">♥ Queen</span>
+              <span style="color: var(--danger);">-10</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 3px 6px; border-radius: 4px; background: oklch(0 0 0 / 0.08);">
+              <span class="suit-club">♣ King</span>
+              <span style="color: var(--danger);">-15</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 3px 6px; border-radius: 4px; background: oklch(0 0 0 / 0.08);">
+              <span class="suit-diamond">♦ Ace</span>
+              <span style="color: var(--danger);">-25</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       FOOTER
+       ============================================ -->
+  <footer style="border-top: 1px solid oklch(0.60 0.08 85 / 0.08); background: oklch(0.10 0.02 150 / 0.6); backdrop-filter: blur(8px); margin-left: 48px;">
+    <div style="max-width: 1440px; margin: 0 auto; padding: 0 24px; height: 40px; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 20px; font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;">
+        <span>Ledger · Card Room</span>
+        <span>● Connected</span>
+        <span>Room: LGE-427</span>
+      </div>
+      <div style="font-size: 0.55rem; color: var(--text-muted); font-style: italic;" class="font-serif">"Fortune favors the bold"</div>
+    </div>
+  </footer>
+
+  <!-- ======== APP SHELL — Script ======== -->
+  <script>
+    (function() {
+      'use strict';
+
+      // --- Panel toggle ---
+      const sidebarBtns = document.querySelectorAll('[data-panel]');
+      const panelCloseBtns = document.querySelectorAll('.panel-close');
+      let activePanel = null;
+
+      function openPanel(id) {
+        const panel = document.getElementById(id);
+        if (!panel) return;
+        // Close any open panel first
+        if (activePanel) {
+          document.getElementById(activePanel)?.classList.remove('open');
+          const oldBtn = document.querySelector(`[data-panel="${activePanel}"]`);
+          if (oldBtn) oldBtn.classList.remove('active');
+        }
+        if (activePanel === id) { activePanel = null; return; } // toggle off
+        panel.classList.add('open');
+        const btn = document.querySelector(`[data-panel="${id}"]`);
+        if (btn) btn.classList.add('active');
+        activePanel = id;
+      }
+
+      function closePanel(id) {
+        const panel = document.getElementById(id);
+        if (panel) panel.classList.remove('open');
+        const btn = document.querySelector(`[data-panel="${id}"]`);
+        if (btn) btn.classList.remove('active');
+        if (activePanel === id) activePanel = null;
+      }
+
+      sidebarBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const panelId = btn.getAttribute('data-panel');
+          if (panelId) openPanel(panelId);
+        });
+      });
+
+      panelCloseBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const panelId = btn.getAttribute('data-panel');
+          if (panelId) closePanel(panelId);
+        });
+      });
+
+      // --- Overlay: Lobby / Post-Game ---
+      const lobbyScreen = document.getElementById('lobbyScreen');
+      const postGameScreen = document.getElementById('postGameScreen');
+      const sidebarHomeBtn = document.getElementById('sidebarHomeBtn');
+      const playAgainBtn = document.getElementById('playAgainBtn');
+      const backToLobbyBtn = document.getElementById('backToLobbyBtn');
+      const lobbyStartBtn = document.getElementById('lobbyStartBtn');
+      const lobbyReadyBtn = document.getElementById('lobbyReadyBtn');
+
+      function showLobby() {
+        if (postGameScreen) postGameScreen.classList.remove('open');
+        if (lobbyScreen) lobbyScreen.classList.add('open');
+        closePanel(activePanel);
+      }
+
+      // Logo also goes to lobby
+      const sidebarLogo = document.querySelector('.sidebar-logo');
+      if (sidebarLogo) sidebarLogo.addEventListener('click', showLobby);
+      if (sidebarHomeBtn) sidebarHomeBtn.addEventListener('click', showLobby);
+
+      if (playAgainBtn) {
+        playAgainBtn.addEventListener('click', () => {
+          if (postGameScreen) postGameScreen.classList.remove('open');
+        });
+      }
+
+      if (backToLobbyBtn) {
+        backToLobbyBtn.addEventListener('click', showLobby);
+      }
+
+      // --- Lobby placeholder interactions ---
+      if (lobbyReadyBtn) {
+        lobbyReadyBtn.addEventListener('click', () => {
+          const isReady = lobbyReadyBtn.textContent === 'Ready';
+          lobbyReadyBtn.textContent = isReady ? '✓ Ready' : 'Ready';
+          lobbyReadyBtn.classList.toggle('btn-primary');
+          lobbyReadyBtn.classList.toggle('btn-secondary');
+          // Enable Start Game when ready
+          if (lobbyStartBtn) {
+            lobbyStartBtn.disabled = !isReady;
+          }
+        });
+      }
+      if (lobbyStartBtn) {
+        lobbyStartBtn.addEventListener('click', () => {
+          lobbyScreen.classList.remove('open');
+        });
+      }
+
+      // --- Toggle switches ---
+      document.querySelectorAll('.toggle-switch').forEach(toggle => {
+        toggle.addEventListener('click', () => {
+          toggle.classList.toggle('on');
+        });
+      });
+
+      // --- Surrender ---
+      const surrenderBtn = document.getElementById('surrenderBtn');
+      if (surrenderBtn) {
+        surrenderBtn.addEventListener('click', () => {
+          if (confirm('Surrender this game? This cannot be undone.')) {
+            showLobby();
+          }
+        });
+      }
+
+      // --- Fullscreen toggle ---
+      const fullscreenBtn = document.getElementById('sidebarFullscreenBtn');
+      if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', () => {
+          if (!document.fullscreenElement) {
+            if (document.documentElement.requestFullscreen) {
+              document.documentElement.requestFullscreen();
+            }
+          } else {
+            if (document.exitFullscreen) {
+              document.exitFullscreen();
+            }
+          }
+        });
+      }
+
+      // --- Close panels on Escape ---
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && activePanel) {
+          closePanel(activePanel);
+        }
+      });
+
+    })();
+  </script>
+
+</body>
+</html>

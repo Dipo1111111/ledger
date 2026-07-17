@@ -1,0 +1,1242 @@
+LEDGER
+Game Design Document (GDD)
+Version 1.0
+Part I — Foundation & Core Economy
+1. Executive Summary
+What is Ledger?
+
+Ledger is a competitive online multiplayer business strategy game where players build corporate empires through investing, asset acquisition, financial management, negotiation, calculated risk-taking, and corporate warfare.
+
+Unlike Monopoly, which is driven primarily by movement and luck, Ledger is designed around player decisions.
+
+There are:
+
+no dice
+no random movement
+no chance cards deciding the game
+
+Every victory should feel earned.
+
+Ledger is fundamentally a game about making smarter financial decisions than everyone else.
+
+Players begin with modest resources and gradually grow into increasingly powerful corporations.
+
+Throughout the match they must:
+
+purchase income-generating assets
+manage taxes
+borrow responsibly
+invest in competitors
+negotiate deals
+buy businesses
+sell businesses
+prepare defenses
+launch Hostile Takeovers
+
+The game ends when only one corporation remains.
+
+Design Philosophy
+
+Ledger was inspired by a physical card game originally created by three high school friends.
+
+The original game became popular because it created stories.
+
+People remembered:
+
+huge financial comebacks
+impossible negotiations
+risky loans
+greedy monopolies
+betrayals
+players helping each other survive
+players intentionally bankrupting rivals
+constant shouting around the table
+
+Those memories define Ledger.
+
+The digital version should preserve that feeling.
+
+The goal is not to recreate the card game perfectly.
+
+The goal is to recreate why it was fun.
+
+Core Design Pillars
+
+Everything inside Ledger should support these pillars.
+
+1. Strategy over Luck
+
+The better player should usually win.
+
+Luck should exist only in human behaviour.
+
+Not in dice.
+
+Not in card draws.
+
+Not in randomness.
+
+If you lose, it should be because another player outplayed you.
+
+2. Economy is King
+
+Money drives everything.
+
+Every action has an economic consequence.
+
+Borrowing creates opportunities.
+
+Taxes create pressure.
+
+Assets create growth.
+
+Investments create alliances.
+
+Takeovers create fear.
+
+Everything ultimately revolves around LC.
+
+3. Every Decision Matters
+
+Every turn should ask meaningful questions.
+
+Should I:
+
+Buy an Asset?
+
+Borrow?
+
+Invest?
+
+Auction?
+
+Sell?
+
+Prepare for taxes?
+
+Save cash?
+
+Prepare for a takeover?
+
+Every decision should have trade-offs.
+
+4. Social Strategy
+
+Ledger is not purely an economic simulator.
+
+It is also a negotiation game.
+
+Players constantly communicate.
+
+Examples:
+
+"I'll lend you 50 LC."
+
+"Sell me your Ace."
+
+"I'll help defend your takeover."
+
+"Invest in me."
+
+"If you attack him instead of me I'll repay you first."
+
+The game encourages interaction.
+
+5. Constant Pressure
+
+No player should ever feel completely safe.
+
+Poor players fear taxes.
+
+Middle players fear stronger corporations.
+
+Rich players fear becoming everyone's target.
+
+The game should constantly create tension.
+
+6. Multiple Paths to Victory
+
+A player should never be forced into one strategy.
+
+Possible approaches include:
+
+Asset Expansion
+
+Investment Empire
+
+Aggressive Acquisitions
+
+Corporate Diplomacy
+
+Economic Dominance
+
+Hostile Takeovers
+
+Hybrid Strategy
+
+Different games should naturally create different winners.
+
+Target Audience
+
+Age:
+
+13+
+
+Ideal Audience:
+
+Strategy gamers
+Chess players
+Monopoly fans
+Poker players
+Finance enthusiasts
+Entrepreneurs
+Competitive friend groups
+Content creators
+
+Platform
+
+Version 1
+
+Web
+
+Desktop-first
+
+Mobile responsive
+
+Future:
+
+iOS
+
+Android
+
+Steam
+
+Players
+
+Minimum:
+
+2
+
+Recommended:
+
+4
+
+Maximum:
+
+6
+
+The game should remain balanced regardless of player count.
+
+Match Length
+
+Target:
+
+30–60 minutes
+
+Never less than 20.
+
+Rarely exceed 60.
+
+This encourages players to immediately queue for another game.
+
+Game Objective
+
+Win Condition:
+
+Become the last corporation remaining.
+
+Players are eliminated only through:
+
+Hostile Takeover failure
+
+or
+
+Financial Collapse (unable to satisfy required obligations).
+
+No score determines victory.
+
+Only survival.
+
+Player Identity
+
+Each player represents a corporation.
+
+Every corporation begins equally.
+
+There are no unique abilities.
+
+No pay-to-win mechanics.
+
+No classes.
+
+Victory depends entirely on decisions.
+
+Currency
+
+Official Currency
+
+Ledger Chips
+
+Abbreviation:
+
+LC
+
+Examples:
+
+20 LC
+
+150 LC
+
+480 LC
+
+Ledger Chips represent liquid capital.
+
+Everything uses LC.
+
+Assets.
+
+Loans.
+
+Investments.
+
+Taxes.
+
+Takeovers.
+
+Trading.
+
+Match Flow
+
+Every match follows four major stages.
+
+Stage 1
+
+Foundation
+
+Players:
+
+Acquire assets
+
+Take loans
+
+Begin generating income
+
+Build cash flow
+
+Low conflict.
+
+Focus on growth.
+
+Stage 2
+
+Expansion
+
+Corporations become wealthier.
+
+Trading increases.
+
+Investments appear.
+
+Auctions become common.
+
+Players begin planning attacks.
+
+Stage 3
+
+Corporate Warfare
+
+Market becomes increasingly player-driven.
+
+Negotiations dominate.
+
+Takeovers begin.
+
+Alliances form.
+
+Players actively attempt eliminations.
+
+Stage 4
+
+Endgame
+
+Only a few corporations remain.
+
+Every decision matters.
+
+Large negotiations happen constantly.
+
+Most Hostile Takeovers occur here.
+
+Winner eventually becomes the final surviving corporation.
+
+Core Gameplay Loop
+
+Every turn follows the same structure.
+
+Collect Income
+
+↓
+
+Choose Actions
+
+↓
+
+End Turn
+
+↓
+
+Next Player
+
+↓
+
+After everyone finishes:
+
+Tax Phase
+
+↓
+
+New Round
+
+Repeat.
+
+Income
+
+Income is generated automatically.
+
+Players receive income from every owned asset.
+
+Income comes directly from the Bank.
+
+Not from other players.
+
+Income occurs before actions.
+
+This allows players to immediately use newly earned capital.
+
+Assets
+
+Assets are permanent investments.
+
+Buying an asset provides:
+
+Recurring Income
+
+Recurring Taxes
+
+Long-term Growth
+
+Assets form the backbone of the economy.
+
+Players continuously evaluate:
+
+Return on Investment
+
+Risk
+
+Future taxes
+
+Market demand
+
+Current Asset Structure
+Asset	Purchase	Income	Tax	Max Per Player
+Jack	30 LC	+10	-4	3
+Queen	50 LC	+20	-6	3
+King	80 LC	+30	-8	2
+Ace	120 LC	+40	-10	2
+
+These values may be tuned during playtesting but define Version 1's intended balance.
+
+Why Assets Matter
+
+Assets create the engine of your corporation.
+
+Without assets:
+
+No income.
+
+No growth.
+
+No long-term strategy.
+
+Every corporation eventually becomes defined by its portfolio.
+
+Taxes
+
+Taxes exist for one purpose:
+
+Prevent runaway leaders.
+
+Without taxes:
+
+The richest player becomes richer forever.
+
+Taxes force difficult decisions.
+
+Should I:
+
+Buy another Ace?
+
+Or keep cash?
+
+Sell an asset?
+
+Take another loan?
+
+Taxes keep money moving.
+
+Taxes occur:
+
+Once per round.
+
+After every player has completed their turn.
+
+Not individually.
+
+Everyone pays simultaneously.
+
+Players always know upcoming taxes.
+
+No surprises.
+
+Loans
+
+Loans are designed to create opportunity.
+
+Especially early-game.
+
+Without loans:
+
+Growth becomes painfully slow.
+
+Loans allow corporations to:
+
+Expand faster
+
+Buy stronger assets
+
+Recover from mistakes
+
+Prepare defenses
+
+Fund investments
+
+Loan Rules
+
+Borrow from Bank.
+
+Interest is fixed.
+
+Repayment deadline exists.
+
+Failure results in default.
+
+Default eventually results in asset seizure if obligations cannot be met.
+
+Loans are powerful.
+
+But dangerous.
+
+Investments
+
+Players may invest in one another.
+
+Investment contracts are negotiated.
+
+Nothing is fixed.
+
+Example:
+
+"I'll give you 60 LC."
+
+"You repay 90 LC in three rounds."
+
+Both agree.
+
+Contract created.
+
+Automatically enforced.
+
+Investments create:
+
+Alliances
+
+Political strategy
+
+Financial dependency
+
+Emergent gameplay
+
+Market
+
+The Bank maintains an unlimited supply of base assets.
+
+Players never "run out" of assets globally.
+
+However, the game transitions naturally into a player-driven economy as corporations mature.
+
+Later in the match:
+
+Trading
+
+Auctions
+
+Negotiations
+
+Hostile Takeovers
+
+become far more valuable than simply buying from the Bank.
+
+This creates a natural evolution without forcing artificial scarcity.
+
+
+LEDGER
+Complete Game Design Document (V1 Concept)
+Part 2 — Gameplay Systems & Core Mechanics
+CORE GAME LOOP
+
+Every game of Ledger follows the same loop.
+
+Players continuously cycle through:
+
+Build → Earn → Invest → Negotiate → Defend → Expand → Eliminate → Win
+
+The game intentionally changes feeling as it progresses.
+
+Early game is about growth.
+
+Mid game is about competition.
+
+Late game is about survival.
+
+This makes every match feel like it naturally evolves rather than repeating the exact same actions every round.
+
+STARTING A MATCH
+
+Each player begins with:
+
+20 LC
+No assets
+No loans
+No investments
+Financial Health: Healthy
+
+The market begins stocked with every asset class.
+
+Players begin taking turns.
+
+PLAYER TURN
+
+Every turn follows the exact same structure.
+
+Step 1
+
+Collect income.
+
+Every owned asset automatically pays its income.
+
+Example
+
+Player owns
+
+King
+
+Queen
+
+Jack
+
+Income
+
++20
++15
++10
+
+Player automatically receives
+
++45 LC
+
+No button required.
+
+Income is instant.
+
+Step 2
+
+Pay taxes.
+
+Taxes are automatically deducted.
+
+Taxes are based on
+
+Assets owned
+Wealth
+
+Taxes scale naturally.
+
+Rich players pay more.
+
+Poor players pay less.
+
+Taxes keep money circulating.
+
+Step 3
+
+Player chooses actions.
+
+A player can perform actions in any order.
+
+Possible actions:
+
+Buy Asset
+
+Sell Asset
+
+Auction Asset
+
+Negotiate
+
+Invest
+
+Borrow
+
+Repay Loan
+
+Hostile Takeover
+
+Sell to Bank
+
+End Turn
+
+ACTIONS
+BUY ASSET
+
+Purchase directly from market.
+
+Pay full purchase cost.
+
+Immediately receive ownership.
+
+Asset begins producing income next round.
+
+SELL TO PLAYER
+
+Players may negotiate privately.
+
+Seller chooses price.
+
+Buyer accepts or declines.
+
+Trade happens instantly.
+
+AUCTION
+
+Player selects asset.
+
+Sets minimum bid.
+
+Auction becomes visible to everyone.
+
+Other players place bids.
+
+Highest bidder wins.
+
+Seller may cancel auction before accepting a winning bid if no final confirmation has occurred (depending on final implementation).
+
+SELL TO BANK
+
+Emergency option.
+
+Bank always buys.
+
+Price:
+
+50% of purchase price.
+
+This exists only as a desperation mechanic.
+
+Players lose value.
+
+INVEST IN PLAYER
+
+Any player may invest.
+
+Investment terms are completely negotiated.
+
+Example
+
+100 LC
+
+Repay 120
+
+Repay after 5 rounds
+
+10% future profits
+
+Anything players agree to.
+
+Game records the contract automatically.
+
+Failure to repay creates legal grounds.
+
+BORROW FROM BANK
+
+Players may borrow.
+
+Maximum:
+
+120 LC
+
+Interest:
+
+50%
+
+Borrow 100
+
+Repay 150
+
+Repayment deadline:
+
+3 rounds
+
+Only one active bank loan at a time.
+
+REPAY LOAN
+
+Repay remaining balance.
+
+Loan disappears.
+
+Financial Health improves.
+
+FINANCIAL HEALTH
+
+Every player always has a visible financial status.
+
+Healthy
+
+Stable
+
+Stressed
+
+Critical
+
+This is determined automatically.
+
+Factors include:
+
+Debt
+
+Cash
+
+Income
+
+Missed payments
+
+Default history
+
+It gives every player an immediate understanding of their financial situation.
+
+MARKET
+
+The market contains four asset classes.
+
+Jack
+
+Queen
+
+King
+
+Ace
+
+Each asset has:
+
+Purchase Price
+
+Income
+
+Tax
+
+Maximum Ownership
+
+Example
+
+Asset	Buy	Income	Tax	Max
+Jack	30	+10	2	4
+Queen	50	+15	3	3
+King	80	+20	2	
+Ace	120	+30	1	
+
+(Awaiting final balancing.)
+
+WHY ASSET LIMITS EXIST
+
+Without limits,
+
+One player buys every Ace.
+
+Economy dies.
+
+Nobody catches up.
+
+Ownership caps force diversification.
+
+Players build different portfolios.
+
+Every match becomes unique.
+
+NEGOTIATION
+
+Negotiation is one of Ledger's biggest mechanics.
+
+Players can negotiate:
+
+Asset sales
+
+Investments
+
+Loans
+
+Emergency funding
+
+Takeover defense
+
+Joint legal cases
+
+Future repayment
+
+Everything except taxes.
+
+Negotiation occurs through:
+
+Voice Chat
+
+Text Chat
+
+Trade Window
+
+The game itself enforces the contract.
+
+Nobody can scam someone after accepting.
+
+PRIVATE DEALS
+
+Only participating players can see negotiation.
+
+Others cannot.
+
+This allows
+
+Alliances
+
+Politics
+
+Bluffs
+
+Secret funding
+
+Emergency rescues
+
+Backroom deals
+
+TAKEOVERS
+
+Takeovers are the biggest event in Ledger.
+
+A takeover is not random.
+
+It is earned.
+
+Requirements
+
+Minimum Wealth
+
+120 LC
+
+Takeover Filing Fee
+
+40 LC
+
+Cooldown
+
+3 rounds
+
+Target Immunity
+
+4 rounds after surviving.
+
+STARTING A TAKEOVER
+
+Player pays filing fee.
+
+Chooses target.
+
+Court announces:
+
+Hostile Takeover Initiated.
+
+Everyone sees it.
+
+The target now has ONE ROUND to survive.
+
+DURING DEFENSE
+
+The defending player may:
+
+Borrow
+
+Sell Assets
+
+Auction Assets
+
+Receive Investments
+
+Negotiate
+
+Sell to Bank
+
+Repay Debt
+
+Anything legal.
+
+Every player now decides
+
+Help them?
+
+Or let them die?
+
+This creates incredible social moments.
+
+WIN CONDITION FOR DEFENDER
+
+The defender must satisfy ONE objective.
+
+Reach a required LC reserve before their next turn.
+
+(The exact reserve value is dynamically calculated by game rules rather than requiring players to manually calculate percentages.)
+
+This keeps calculations invisible.
+
+Players only see:
+
+Target Required
+
+Current Progress
+
+Simple.
+
+IF DEFENDER SURVIVES
+
+Takeover fails.
+
+Attacker permanently loses filing fee.
+
+Target becomes immune.
+
+Everyone celebrates.
+
+The table changes.
+
+IF DEFENDER LOSES
+
+Player is eliminated.
+
+Their remaining liquid assets are liquidated.
+
+Attacker receives:
+
+One selected asset of their choice
+
+plus
+
+A small liquidation reward.
+
+Not enough to snowball.
+
+Enough to justify the risk.
+
+WHY THIS SYSTEM WORKS
+
+Takeovers are expensive.
+
+Risky.
+
+Rare.
+
+Exciting.
+
+Nobody casually launches them.
+
+But everybody fears them.
+
+Exactly what we wanted.
+
+BANKRUPTCY
+
+Players become bankrupt if:
+
+Cannot repay bank loan.
+
+Cannot pay taxes.
+
+Cannot survive takeover.
+
+Cannot recover finances.
+
+When bankrupt:
+
+Player eliminated.
+
+Assets liquidated.
+
+Contracts closed.
+
+Investments settled where possible.
+
+GAME ERAS
+
+Ledger naturally changes throughout one match.
+
+Era One
+
+Foundation
+
+Everyone grows.
+
+Everyone buys assets.
+
+Economy expands.
+
+Little conflict.
+
+Era Two
+
+Expansion
+
+Negotiation increases.
+
+Investments appear.
+
+Loans become common.
+
+Income rises.
+
+Era Three
+
+Competition
+
+Market mostly owned.
+
+Private trading dominates.
+
+Political alliances begin.
+
+Players prepare defenses.
+
+Era Four
+
+Corporate War
+
+Hostile takeovers.
+
+Emergency investments.
+
+Legal pressure.
+
+Bankruptcies.
+
+Massive negotiations.
+
+Everything becomes tense.
+
+Era Five
+
+Endgame
+
+Only strongest businesses remain.
+
+Every decision matters.
+
+Every takeover matters.
+
+Every negotiation matters.
+
+One mistake ends your company.
+
+PLAYER ELIMINATION
+
+Ledger intentionally allows elimination.
+
+Why?
+
+Because elimination creates pressure.
+
+Pressure creates excitement.
+
+Excitement creates memorable stories.
+
+Nobody wants to become the next company to collapse.
+
+PLAYER PSYCHOLOGY
+
+Ledger constantly creates emotional highs.
+
+Buying first Ace.
+
+Getting first investment.
+
+Paying off first loan.
+
+Winning first auction.
+
+Surviving first takeover.
+
+Launching successful takeover.
+
+Building biggest company.
+
+Winning match.
+
+Each moment feels meaningful.
+
+WHY LEDGER FEELS DIFFERENT
+
+Unlike Monopoly...
+
+Money doesn't appear randomly.
+
+Unlike Poker...
+
+Luck isn't the deciding factor.
+
+Unlike Chess...
+
+Negotiation exists.
+
+Unlike Catan...
+
+Players create the economy.
+
+Ledger combines:
+
+Economics
+
+Strategy
+
+Negotiation
+
+Politics
+
+Risk Management
+
+Business
+
+Psychology
+
+into one competitive multiplayer experience.
+
+CORE DESIGN PHILOSOPHY
+
+Every mechanic in Ledger must satisfy four principles:
+
+Simple to understand. A new player should learn the basics within a few minutes.
+Deep to master. Experienced players should continuously discover better strategies through negotiation, timing, investment decisions, and market control.
+Meaningful choices. Every decision—borrowing, investing, buying, launching a takeover, or helping another player—should involve a real trade-off.
+Player-driven stories. The most memorable moments should come from player interactions, not scripted events: desperate alliances, dramatic takeover defenses, risky investments, and unexpected betrayals.

@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ledger — Trading Floor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-primary: #070b14;
+      --bg-secondary: #0d1225;
+      --bg-card: #111827;
+      --bg-card-hover: #1a2332;
+      --bg-elevated: #1e293b;
+      --border: #1e3a5f;
+      --border-light: #2a4a7a;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.15);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.15);
+      --red: #ef4444;
+      --red-glow: rgba(239, 68, 68, 0.15);
+      --blue: #3b82f6;
+      --blue-glow: rgba(59, 130, 246, 0.1);
+      --cyan: #06b6d4;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+    /* Animations */
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 10px var(--amber-glow); }
+      50% { box-shadow: 0 0 25px var(--amber-glow), 0 0 50px var(--amber-glow); }
+    }
+    @keyframes ticker {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    @keyframes fade-in-up {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    @keyframes data-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    @keyframes slide-in-right {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes count-up {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
+    .animate-slide-in-right { animation: slide-in-right 0.5s ease-out forwards; }
+    .animate-count-up { animation: count-up 0.4s ease-out forwards; }
+    .animate-data-pulse { animation: data-pulse 2s ease-in-out infinite; }
+    .stagger-1 { animation-delay: 0.1s; }
+    .stagger-2 { animation-delay: 0.2s; }
+    .stagger-3 { animation-delay: 0.3s; }
+    .stagger-4 { animation-delay: 0.4s; }
+    .stagger-5 { animation-delay: 0.5s; }
+
+    .ticker-content { animation: ticker 30s linear infinite; }
+    .ticker-content:hover { animation-play-state: paused; }
+
+    .health-bar {
+      height: 3px;
+      border-radius: 99px;
+      transition: all 0.5s ease;
+    }
+    .health-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .gradient-border {
+      position: relative;
+      border-radius: 12px;
+    }
+    .gradient-border::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      padding: 1px;
+      background: linear-gradient(135deg, var(--border-light), transparent, var(--border));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .asset-card {
+      background: linear-gradient(145deg, var(--bg-card), var(--bg-secondary));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .asset-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .asset-card:hover {
+      border-color: var(--border-light);
+      transform: translateY(-2px);
+      background: linear-gradient(145deg, var(--bg-card-hover), var(--bg-card));
+    }
+    .asset-card:hover::before { opacity: 1; }
+    .asset-card-jack::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .asset-card-queen::before { background: linear-gradient(90deg, #ec4899, #f472b6); }
+    .asset-card-king::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .asset-card-ace::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+    .player-card {
+      background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      transition: all 0.3s ease;
+    }
+    .player-card:hover {
+      border-color: var(--border-light);
+    }
+    .player-card.active {
+      border-color: var(--amber);
+      box-shadow: 0 0 20px var(--amber-glow);
+    }
+    .player-card.eliminated {
+      opacity: 0.4;
+      filter: grayscale(1);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--amber), #d97706);
+      color: #000;
+      font-weight: 600;
+      padding: 10px 24px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px var(--amber-glow);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+    }
+    .btn-ghost:hover {
+      border-color: var(--border-light);
+      color: var(--text-primary);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, var(--red), #dc2626);
+      color: white;
+      font-weight: 600;
+      padding: 10px 24px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+    }
+    .btn-danger:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px var(--red-glow);
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-dot.healthy { background: var(--green); box-shadow: 0 0 8px var(--green-glow); }
+    .status-dot.stable { background: #84cc16; box-shadow: 0 0 8px rgba(132, 204, 22, 0.3); }
+    .status-dot.stressed { background: var(--amber); box-shadow: 0 0 8px var(--amber-glow); }
+    .status-dot.critical { background: var(--red); box-shadow: 0 0 8px var(--red-glow); animation: data-pulse 1s ease-in-out infinite; }
+
+    .ticker-tape {
+      background: linear-gradient(90deg, #0a0f1e, #0d1225, #0a0f1e);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .ticker-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+    }
+
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(30, 58, 95, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30, 58, 95, 0.1) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .badge-era {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 4px 12px;
+      border-radius: 99px;
+      border: 1px solid;
+    }
+
+    .market-depth {
+      display: flex;
+      gap: 2px;
+      align-items: flex-end;
+      height: 40px;
+    }
+    .market-depth-bar {
+      width: 20px;
+      border-radius: 2px 2px 0 0;
+      transition: height 0.6s ease;
+    }
+
+    .glass-panel {
+      background: rgba(17, 24, 39, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    .tab-active {
+      color: var(--amber);
+      border-bottom: 2px solid var(--amber);
+    }
+
+    @media (max-width: 1024px) {
+      .layout-grid { grid-template-columns: 1fr !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Ticker Tape -->
+  <div class="ticker-tape py-2">
+    <div class="ticker-content">
+      <span class="ticker-item">
+        <span class="text-emerald-400">▲</span>
+        <span class="text-white font-semibold">JACK</span>
+        <span class="text-emerald-400">+2.5%</span>
+        <span class="text-muted-foreground text-[#64748b]">20 LC</span>
+      </span>
+      <span class="ticker-item">
+        <span class="text-emerald-400">▲</span>
+        <span class="text-white font-semibold">QUEEN</span>
+        <span class="text-emerald-400">+3.1%</span>
+        <span class="text-[#64748b]">40 LC</span>
+      </span>
+      <span class="ticker-item">
+        <span class="text-amber-400">◆</span>
+        <span class="text-white font-semibold">KING</span>
+        <span class="text-amber-400">+1.8%</span>
+        <span class="text-[#64748b]">60 LC</span>
+      </span>
+      <span class="ticker-item">
+        <span class="text-red-400">▼</span>
+        <span class="text-white font-semibold">ACE</span>
+        <span class="text-red-400">-0.7%</span>
+        <span class="text-[#64748b]">100 LC</span>
+      </span>
+      <span class="ticker-item">
+        <span class="text-cyan-400">LC</span>
+        <span class="text-white font-semibold">MARKET</span>
+        <span class="text-emerald-400">+1.2%</span>
+        <span class="text-[#64748b]">VOL 2.4K</span>
+      </span>
+      <span class="ticker-item">
+        <span class="text-emerald-400">▲</span>
+        <span class="text-white font-semibold">JACK</span>
+        <span class="text-emerald-400">+2.5%</span>
+        <span class="text-muted-foreground text-[#64748b]">20 LC</span>
+      </span>
+      <span class="ticker-item">
+        <span class="text-emerald-400">▲</span>
+        <span class="text-white font-semibold">QUEEN</span>
+        <span class="text-emerald-400">+3.1%</span>
+        <span class="text-[#64748b]">40 LC</span>
+      </span>
+      <span class="ticker-item">
+        <span class="text-amber-400">◆</span>
+        <span class="text-white font-semibold">KING</span>
+        <span class="text-amber-400">+1.8%</span>
+        <span class="text-[#64748b]">60 LC</span>
+      </span>
+      <span class="ticker-item">
+        <span class="text-red-400">▼</span>
+        <span class="text-white font-semibold">ACE</span>
+        <span class="text-red-400">-0.7%</span>
+        <span class="text-[#64748b]">100 LC</span>
+      </span>
+      <span class="ticker-item">
+        <span class="text-cyan-400">LC</span>
+        <span class="text-white font-semibold">MARKET</span>
+        <span class="text-emerald-400">+1.2%</span>
+        <span class="text-[#64748b]">VOL 2.4K</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Top Nav -->
+  <header class="border-b border-[var(--border)] bg-[#090d1a]/80 backdrop-blur-xl sticky top-0 z-50">
+    <div class="max-w-[1600px] mx-auto px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-10">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-black font-bold text-sm font-mono">L</div>
+          <span class="text-lg font-bold tracking-tight text-white">Ledger</span>
+          <span class="text-[0.6rem] font-semibold uppercase tracking-[0.15em] text-[#64748b] border border-[var(--border)] px-2 py-0.5 rounded">Alpha</span>
+        </div>
+        <nav class="hidden lg:flex items-center gap-6">
+          <a href="#" class="text-sm font-medium text-[var(--text-secondary)] hover:text-white transition-colors">Dashboard</a>
+          <a href="#" class="text-sm font-medium text-white border-b-2 border-[var(--amber)] pb-0.5">Market</a>
+          <a href="#" class="text-sm font-medium text-[var(--text-secondary)] hover:text-white transition-colors">Portfolio</a>
+          <a href="#" class="text-sm font-medium text-[var(--text-secondary)] hover:text-white transition-colors">History</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="hidden md:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border)]">
+          <span class="status-dot healthy"></span>
+          <span class="text-xs font-mono text-[var(--text-secondary)]">Round 4/12 · Era 2</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="text-right hidden sm:block">
+            <div class="text-xs text-[var(--text-muted)]">Your Balance</div>
+            <div class="text-sm font-bold font-mono text-amber-400">240 LC</div>
+          </div>
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-black font-bold text-sm">
+            A
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <div class="max-w-[1600px] mx-auto px-6 py-6 grid grid-cols-1 xl:grid-cols-[280px_1fr_320px] gap-6">
+
+    <!-- LEFT SIDEBAR — Market Depth & Asset Catalog -->
+    <aside class="space-y-5 animate-fade-in-up stagger-1">
+      <!-- Market Overview -->
+      <div class="glass-panel p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">Market</h3>
+          <span class="text-[0.6rem] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">● LIVE</span>
+        </div>
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 22"/><path d="M17 7L12 2 7 7"/><path d="M5 21L19 21"/></svg>
+              <span class="text-sm font-medium">Jack</span>
+            </div>
+            <div class="text-right">
+              <div class="text-sm font-mono font-semibold text-white">20 LC</div>
+              <div class="text-[0.6rem] font-mono text-emerald-400">+2.50%</div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-pink-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22C12 22 4 16 4 10C4 6 7.58 4 12 4C16.42 4 20 6 20 10C20 16 12 22 12 22Z"/></svg>
+              <span class="text-sm font-medium">Queen</span>
+            </div>
+            <div class="text-right">
+              <div class="text-sm font-mono font-semibold text-white">40 LC</div>
+              <div class="text-[0.6rem] font-mono text-emerald-400">+3.10%</div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L20 9V21H4V9L12 3Z"/><path d="M9 21V13H15V21"/></svg>
+              <span class="text-sm font-medium">King</span>
+            </div>
+            <div class="text-right">
+              <div class="text-sm font-mono font-semibold text-white">60 LC</div>
+              <div class="text-[0.6rem] font-mono text-amber-400">+1.80%</div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span class="text-sm font-medium">Ace</span>
+            </div>
+            <div class="text-right">
+              <div class="text-sm font-mono font-semibold text-white">100 LC</div>
+              <div class="text-[0.6rem] font-mono text-red-400">-0.70%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Portfolio Summary -->
+      <div class="glass-panel p-5">
+        <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)] mb-4">Your Portfolio</h3>
+        <div class="space-y-3">
+          <div class="flex items-center justify-between py-2 border-b border-[var(--border)]">
+            <span class="text-sm text-[var(--text-secondary)]">Total Assets</span>
+            <span class="text-sm font-mono font-semibold text-white">4</span>
+          </div>
+          <div class="flex items-center justify-between py-2 border-b border-[var(--border)]">
+            <span class="text-sm text-[var(--text-secondary)]">Asset Value</span>
+            <span class="text-sm font-mono font-semibold text-white">180 LC</span>
+          </div>
+          <div class="flex items-center justify-between py-2 border-b border-[var(--border)]">
+            <span class="text-sm text-[var(--text-secondary)]">Income / Round</span>
+            <span class="text-sm font-mono font-semibold text-emerald-400">+70 LC</span>
+          </div>
+          <div class="flex items-center justify-between py-2">
+            <span class="text-sm text-[var(--text-secondary)]">Tax / Round</span>
+            <span class="text-sm font-mono font-semibold text-red-400">-35 LC</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loan Status -->
+      <div class="glass-panel p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">Loan</h3>
+          <span class="text-[0.6rem] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">ACTIVE</span>
+        </div>
+        <div class="space-y-2">
+          <div class="flex justify-between">
+            <span class="text-xs text-[var(--text-secondary)]">Principal</span>
+            <span class="text-xs font-mono text-white">80 LC</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-xs text-[var(--text-secondary)]">Interest (50%)</span>
+            <span class="text-xs font-mono text-amber-400">40 LC</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-xs text-[var(--text-secondary)]">Total Due</span>
+            <span class="text-xs font-mono font-semibold text-white">120 LC</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-xs text-[var(--text-secondary)]">Deadline</span>
+            <span class="text-xs font-mono text-red-400">2 rounds</span>
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-[var(--border)]">
+          <div class="text-[0.6rem] text-[var(--text-muted)] mb-1">Repayment Progress</div>
+          <div class="h-1.5 rounded-full bg-[var(--bg-elevated)] overflow-hidden">
+            <div class="h-full rounded-full bg-amber-400" style="width: 33%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="glass-panel p-5">
+        <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)] mb-3">Quick Actions</h3>
+        <div class="grid grid-cols-2 gap-2">
+          <button class="btn-primary text-xs py-2.5">Buy Asset</button>
+          <button class="btn-ghost text-xs py-2.5">Sell</button>
+          <button class="btn-ghost text-xs py-2.5">Borrow</button>
+          <button class="btn-ghost text-xs py-2.5">Repay</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER — Main Game Board -->
+    <main class="space-y-5 animate-fade-in-up stagger-2">
+
+      <!-- Turn Indicator & Round Info -->
+      <div class="flex flex-wrap items-center justify-between gap-4 glass-panel p-4">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-data-pulse"></div>
+            <span class="text-sm font-semibold text-white">Your Turn</span>
+          </div>
+          <div class="h-6 w-px bg-[var(--border)]"></div>
+          <div class="text-xs text-[var(--text-secondary)]">
+            <span class="font-mono text-white">4</span> / 12 rounds
+          </div>
+          <div class="h-6 w-px bg-[var(--border)]"></div>
+          <span class="badge-era border-emerald-500/30 text-emerald-400 bg-emerald-500/5">Era 2 · Expansion</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-[var(--text-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span class="text-xs font-mono text-[var(--text-secondary)]">02:34</span>
+          </div>
+          <button class="btn-ghost text-xs py-1.5 px-3">End Turn</button>
+        </div>
+      </div>
+
+      <!-- Player's Hand / Owned Assets -->
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-white tracking-tight">Your Assets</h2>
+          <span class="text-xs text-[var(--text-secondary)]">Net Worth: <span class="font-mono text-amber-400 font-semibold">420 LC</span></span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <!-- Jack Card -->
+          <div class="asset-card asset-card-jack p-4 animate-fade-in-up stagger-1">
+            <div class="flex items-center justify-between mb-3">
+              <svg class="w-6 h-6 text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L12 22M17 7L12 2 7 7M5 21L19 21"/></svg>
+              <span class="text-[0.6rem] font-mono text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded">×3</span>
+            </div>
+            <h4 class="text-sm font-semibold text-white">Jack</h4>
+            <div class="flex items-center justify-between mt-2">
+              <span class="text-xs text-[var(--text-muted)]">Income</span>
+              <span class="text-xs font-mono text-emerald-400">+10</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-[var(--text-muted)]">Tax</span>
+              <span class="text-xs font-mono text-red-400">-5</span>
+            </div>
+          </div>
+
+          <!-- Queen Card -->
+          <div class="asset-card asset-card-queen p-4 animate-fade-in-up stagger-2">
+            <div class="flex items-center justify-between mb-3">
+              <svg class="w-6 h-6 text-pink-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22C12 22 4 16 4 10C4 6 7.58 4 12 4C16.42 4 20 6 20 10C20 16 12 22 12 22Z"/></svg>
+              <span class="text-[0.6rem] font-mono text-pink-400 bg-pink-500/10 px-1.5 py-0.5 rounded">×1</span>
+            </div>
+            <h4 class="text-sm font-semibold text-white">Queen</h4>
+            <div class="flex items-center justify-between mt-2">
+              <span class="text-xs text-[var(--text-muted)]">Income</span>
+              <span class="text-xs font-mono text-emerald-400">+20</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-[var(--text-muted)]">Tax</span>
+              <span class="text-xs font-mono text-red-400">-10</span>
+            </div>
+          </div>
+
+          <!-- King Card -->
+          <div class="asset-card asset-card-king p-4 animate-fade-in-up stagger-3">
+            <div class="flex items-center justify-between mb-3">
+              <svg class="w-6 h-6 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L20 9V21H4V9L12 3Z"/><path d="M9 21V13H15V21"/></svg>
+              <span class="text-[0.6rem] font-mono text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">×1</span>
+            </div>
+            <h4 class="text-sm font-semibold text-white">King</h4>
+            <div class="flex items-center justify-between mt-2">
+              <span class="text-xs text-[var(--text-muted)]">Income</span>
+              <span class="text-xs font-mono text-emerald-400">+30</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-[var(--text-muted)]">Tax</span>
+              <span class="text-xs font-mono text-red-400">-15</span>
+            </div>
+          </div>
+
+          <!-- Ace Card (Empty/Slot) -->
+          <div class="asset-card p-4 opacity-40 border-dashed animate-fade-in-up stagger-4" style="cursor: default;">
+            <div class="flex items-center justify-between mb-3">
+              <svg class="w-6 h-6 text-[var(--text-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span class="text-[0.6rem] font-mono text-[var(--text-muted)] bg-[var(--bg-elevated)] px-1.5 py-0.5 rounded">empty</span>
+            </div>
+            <h4 class="text-sm font-semibold text-[var(--text-muted)]">Ace Slot</h4>
+            <div class="text-xs text-[var(--text-muted)] mt-2">Max 1 per player</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Market Available Assets -->
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-white tracking-tight">Market</h2>
+          <span class="text-xs text-[var(--text-secondary)]">Bank Supply: <span class="font-mono text-white">Unlimited</span></span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="asset-card asset-card-jack p-4 text-center hover:scale-[1.02] animate-fade-in-up stagger-1">
+            <svg class="w-8 h-8 mx-auto mb-2 text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L12 22M17 7L12 2 7 7M5 21L19 21"/></svg>
+            <h4 class="text-sm font-semibold text-white">Jack</h4>
+            <div class="text-xl font-bold font-mono text-white mt-1">20 LC</div>
+            <div class="text-[0.6rem] text-[var(--text-secondary)] mt-1">+10 income · -5 tax</div>
+            <button class="btn-primary text-xs py-1.5 px-4 mt-3 w-full">Buy</button>
+          </div>
+          <div class="asset-card asset-card-queen p-4 text-center hover:scale-[1.02] animate-fade-in-up stagger-2">
+            <svg class="w-8 h-8 mx-auto mb-2 text-pink-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22C12 22 4 16 4 10C4 6 7.58 4 12 4C16.42 4 20 6 20 10C20 16 12 22 12 22Z"/></svg>
+            <h4 class="text-sm font-semibold text-white">Queen</h4>
+            <div class="text-xl font-bold font-mono text-white mt-1">40 LC</div>
+            <div class="text-[0.6rem] text-[var(--text-secondary)] mt-1">+20 income · -10 tax</div>
+            <button class="btn-primary text-xs py-1.5 px-4 mt-3 w-full">Buy</button>
+          </div>
+          <div class="asset-card asset-card-king p-4 text-center hover:scale-[1.02] animate-fade-in-up stagger-3">
+            <svg class="w-8 h-8 mx-auto mb-2 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L20 9V21H4V9L12 3Z"/><path d="M9 21V13H15V21"/></svg>
+            <h4 class="text-sm font-semibold text-white">King</h4>
+            <div class="text-xl font-bold font-mono text-white mt-1">60 LC</div>
+            <div class="text-[0.6rem] text-[var(--text-secondary)] mt-1">+30 income · -15 tax</div>
+            <button class="btn-primary text-xs py-1.5 px-4 mt-3 w-full">Buy</button>
+          </div>
+          <div class="asset-card asset-card-ace p-4 text-center hover:scale-[1.02] animate-fade-in-up stagger-4">
+            <svg class="w-8 h-8 mx-auto mb-2 text-red-400" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <h4 class="text-sm font-semibold text-white">Ace</h4>
+            <div class="text-xl font-bold font-mono text-white mt-1">100 LC</div>
+            <div class="text-[0.6rem] text-[var(--text-secondary)] mt-1">+50 income · -25 tax</div>
+            <button class="btn-primary text-xs py-1.5 px-4 mt-3 w-full">Buy</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Log -->
+      <div class="glass-panel p-5">
+        <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)] mb-4">Activity Feed</h3>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3 text-xs animate-fade-in-up">
+            <span class="text-[0.6rem] font-mono text-[var(--text-muted)] whitespace-nowrap mt-0.5">12:34</span>
+            <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0"></div>
+            <div>
+              <span class="text-white font-medium">Apex Corp</span>
+              <span class="text-[var(--text-secondary)]"> purchased a </span>
+              <span class="text-blue-400 font-mono">Jack</span>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 text-xs animate-fade-in-up stagger-1">
+            <span class="text-[0.6rem] font-mono text-[var(--text-muted)] whitespace-nowrap mt-0.5">12:28</span>
+            <div class="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+            <div>
+              <span class="text-white font-medium">Ironhold Ltd</span>
+              <span class="text-[var(--text-secondary)]"> borrowed </span>
+              <span class="text-amber-400 font-mono">80 LC</span>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 text-xs animate-fade-in-up stagger-2">
+            <span class="text-[0.6rem] font-mono text-[var(--text-muted)] whitespace-nowrap mt-0.5">12:15</span>
+            <div class="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></div>
+            <div>
+              <span class="text-red-400 font-semibold">Tax Day</span>
+              <span class="text-[var(--text-secondary)]"> — All players paid obligations</span>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 text-xs animate-fade-in-up stagger-3">
+            <span class="text-[0.6rem] font-mono text-[var(--text-muted)] whitespace-nowrap mt-0.5">11:52</span>
+            <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0"></div>
+            <div>
+              <span class="text-white font-medium">Your Corp</span>
+              <span class="text-[var(--text-secondary)]"> collected </span>
+              <span class="text-emerald-400 font-mono">+70 LC</span>
+              <span class="text-[var(--text-secondary)]"> income</span>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 text-xs animate-fade-in-up stagger-4">
+            <span class="text-[0.6rem] font-mono text-[var(--text-muted)] whitespace-nowrap mt-0.5">11:44</span>
+            <div class="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+            <div>
+              <span class="text-amber-400 font-semibold">Hostile Takeover</span>
+              <span class="text-[var(--text-secondary)]"> — </span>
+              <span class="text-white font-medium">Storm Inc</span>
+              <span class="text-[var(--text-secondary)]"> filed against </span>
+              <span class="text-red-400">Nexus Corp</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT SIDEBAR — Players & Chat -->
+    <aside class="space-y-5 animate-fade-in-up stagger-3">
+      <!-- Player This Turn -->
+      <div class="glass-panel p-4 border-[var(--amber)]/40" style="box-shadow: 0 0 20px var(--amber-glow);">
+        <div class="flex items-center gap-3 mb-1">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-black font-bold text-sm">A</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-semibold text-white">Apex Corp</span>
+              <span class="status-dot healthy"></span>
+            </div>
+            <div class="text-xs text-[var(--text-muted)]">Your Corporation</div>
+          </div>
+        </div>
+        <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+          <div class="bg-[var(--bg-primary)] rounded-lg py-2">
+            <div class="text-lg font-bold font-mono text-amber-400">240</div>
+            <div class="text-[0.55rem] uppercase tracking-wider text-[var(--text-muted)]">LC</div>
+          </div>
+          <div class="bg-[var(--bg-primary)] rounded-lg py-2">
+            <div class="text-lg font-bold font-mono text-emerald-400">+70</div>
+            <div class="text-[0.55rem] uppercase tracking-wider text-[var(--text-muted)]">Income</div>
+          </div>
+          <div class="bg-[var(--bg-primary)] rounded-lg py-2">
+            <div class="text-lg font-bold font-mono text-red-400">-35</div>
+            <div class="text-[0.55rem] uppercase tracking-wider text-[var(--text-muted)]">Tax</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Opponents -->
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)] mb-3">Opponents</h3>
+        <div class="space-y-2">
+          <!-- Player 2 - Active turn indicator -->
+          <div class="player-card active p-3 animate-fade-in-up stagger-1">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-xs">I</div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-semibold text-white">Ironhold Ltd</span>
+                  <span class="status-dot stressed"></span>
+                  <span class="text-[0.55rem] font-mono text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded">● TURN</span>
+                </div>
+                <div class="flex items-center gap-4 text-xs text-[var(--text-secondary)]">
+                  <span class="font-mono text-amber-400">180 LC</span>
+                  <span class="font-mono text-emerald-400">+40</span>
+                  <span class="font-mono text-red-400">-20</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Player 3 -->
+          <div class="player-card p-3 animate-fade-in-up stagger-2">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-bold text-xs">S</div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-semibold text-white">Storm Inc</span>
+                  <span class="status-dot healthy"></span>
+                </div>
+                <div class="flex items-center gap-4 text-xs text-[var(--text-secondary)]">
+                  <span class="font-mono text-amber-400">420 LC</span>
+                  <span class="font-mono text-emerald-400">+90</span>
+                  <span class="font-mono text-red-400">-45</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Player 4 -->
+          <div class="player-card p-3 animate-fade-in-up stagger-3">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white font-bold text-xs">N</div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-semibold text-white">Nexus Corp</span>
+                  <span class="status-dot critical"></span>
+                </div>
+                <div class="flex items-center gap-4 text-xs text-[var(--text-secondary)]">
+                  <span class="font-mono text-amber-400">60 LC</span>
+                  <span class="font-mono text-emerald-400">+10</span>
+                  <span class="font-mono text-red-400">-5</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Player 5 -->
+          <div class="player-card eliminated p-3 animate-fade-in-up stagger-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center text-gray-400 font-bold text-xs">C</div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-semibold text-gray-500">Cipher Co</span>
+                  <span class="text-[0.55rem] text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded text-xs">ELIMINATED</span>
+                </div>
+                <div class="text-xs text-gray-600">Bankrupt — Round 3</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat / Negotiation -->
+      <div class="glass-panel flex flex-col" style="height: 320px;">
+        <div class="p-4 border-b border-[var(--border)]">
+          <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">Negotiations</h3>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-3">
+          <div class="flex items-start gap-2 text-xs">
+            <span class="text-blue-400 font-semibold shrink-0">I:</span>
+            <span class="text-[var(--text-secondary)]">Anyone selling a Queen? I'll pay 45 LC</span>
+          </div>
+          <div class="flex items-start gap-2 text-xs">
+            <span class="text-purple-400 font-semibold shrink-0">S:</span>
+            <span class="text-[var(--text-secondary)]">I'll sell you mine for 50</span>
+          </div>
+          <div class="flex items-start gap-2 text-xs">
+            <span class="text-amber-400 font-semibold shrink-0">System:</span>
+            <span class="text-[var(--text-secondary)]">Taxes due in 1 round. Prepare your obligations.</span>
+          </div>
+        </div>
+        <div class="p-3 border-t border-[var(--border)]">
+          <div class="flex gap-2">
+            <input type="text" placeholder="Negotiate..." class="flex-1 bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-white placeholder-[var(--text-muted)] outline-none focus:border-[var(--border-light)] transition-colors" />
+            <button class="btn-primary text-xs px-3 py-2">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Takeover Alert -->
+      <div class="glass-panel p-4 border-red-500/30 bg-red-500/5" style="box-shadow: 0 0 20px var(--red-glow);">
+        <div class="flex items-center gap-3">
+          <svg class="w-5 h-5 text-red-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+          <div>
+            <div class="text-xs font-semibold text-red-400">Takeover Alert</div>
+            <div class="text-[0.6rem] text-[var(--text-secondary)]">Storm Inc filed against Nexus Corp — Defense phase active</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Footer Status Bar -->
+  <footer class="border-t border-[var(--border)] mt-8 bg-[#090d1a]/80 backdrop-blur-xl">
+    <div class="max-w-[1600px] mx-auto px-6 h-10 flex items-center justify-between">
+      <div class="flex items-center gap-6 text-[0.6rem] text-[var(--text-muted)]">
+        <span>Ledger v0.1</span>
+        <span>● Connected</span>
+        <span>Room: LGE-427</span>
+        <span>4 / 6 players</span>
+      </div>
+      <div class="flex items-center gap-4 text-[0.6rem] text-[var(--text-muted)]">
+        <span>CPU: 2.4%</span>
+        <span>MEM: 128MB</span>
+        <span>Ping: 24ms</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

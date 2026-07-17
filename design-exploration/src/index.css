@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/* =====================================================
+   GLOBAL RESET
+   ===================================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =====================================================
+   DESIGN 1: THE TERMINAL
+   Ultra-dark financial terminal — like Bloomberg x cyberpunk
+   ===================================================== */
+@theme {
+  --font-terminal: "JetBrains Mono", ui-monospace, monospace;
+  --color-terminal-bg: #06060c;
+  --color-terminal-surface: #0d0d1a;
+  --color-terminal-elevated: #14142b;
+  --color-terminal-border: #1e1e3a;
+  --color-terminal-accent: #6C5CE7;
+  --color-terminal-cyan: #00D2D3;
+  --color-terminal-green: #00E676;
+  --color-terminal-red: #FF5252;
+  --color-terminal-amber: #FFB74D;
+  --color-terminal-ink: #d8d8f0;
+  --color-terminal-muted: #6b6b8a;
+  --color-terminal-dim: #2a2a4a;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(108, 92, 231, 0.2); }
+  50% { box-shadow: 0 0 16px rgba(108, 92, 231, 0.5); }
+}
+
+/* =====================================================
+   DESIGN 2: THE STUDY
+   Warm, editorial, premium club — like a high-stakes poker room
+   ===================================================== */
+@theme {
+  --font-study-serif: "Playfair Display", Georgia, serif;
+  --font-study-sans: "Inter", system-ui, sans-serif;
+  --color-study-bg: #12121c;
+  --color-study-surface: #1a1a2e;
+  --color-study-elevated: #242442;
+  --color-study-border: #2c2c4a;
+  --color-study-gold: #C9A94E;
+  --color-study-gold-light: #DFC26B;
+  --color-study-violet: #7C6CF0;
+  --color-study-ink: #eaeaf4;
+  --color-study-muted: #7a7aaa;
+  --color-study-dim: #3a3a5a;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.study-card {
+  animation: fade-up 0.5s ease-out both;
+}
+
+/* =====================================================
+   DESIGN 3: THE COMMAND
+   Tactical, bold, tension-forward — like a military ops room
+   ===================================================== */
+@theme {
+  --font-command: "Space Grotesk", system-ui, sans-serif;
+  --font-command-body: "Inter", system-ui, sans-serif;
+  --color-command-bg: #070b17;
+  --color-command-surface: #0d1528;
+  --color-command-elevated: #142044;
+  --color-command-border: #1a2a4a;
+  --color-command-crimson: #D32F2F;
+  --color-command-steel: #4A90D9;
+  --color-command-amber: #F5A623;
+  --color-command-green: #27AE60;
+  --color-command-ink: #e0e8f6;
+  --color-command-muted: #6a7aa8;
+  --color-command-dim: #1a2a4a;
+}
+
+@keyframes border-pulse {
+  0%, 100% { border-color: rgba(211, 47, 47, 0.3); }
+  50% { border-color: rgba(211, 47, 47, 0.8); }
+}
+@keyframes data-stream {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}

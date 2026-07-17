@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ledger — Boardroom</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --bg-hover: #e2e8f0;
+      --border: #e2e8f0;
+      --border-light: #f1f5f9;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --indigo: #6366f1;
+      --indigo-light: #a5b4fc;
+      --indigo-bg: rgba(99, 102, 241, 0.08);
+      --teal: #14b8a6;
+      --teal-light: #5eead4;
+      --teal-bg: rgba(20, 184, 166, 0.08);
+      --amber: #f59e0b;
+      --amber-light: #fcd34d;
+      --amber-bg: rgba(245, 158, 11, 0.08);
+      --coral: #f43f5e;
+      --coral-light: #fb7185;
+      --coral-bg: rgba(244, 63, 94, 0.08);
+      --purple: #8b5cf6;
+      --purple-bg: rgba(139, 92, 246, 0.08);
+      --green: #10b981;
+      --green-bg: rgba(16, 185, 129, 0.08);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.06), 0 2px 4px -2px rgba(0,0,0,0.04);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.06), 0 4px 6px -4px rgba(0,0,0,0.04);
+      --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.06), 0 8px 10px -6px rgba(0,0,0,0.04);
+      --radius: 12px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* Animations */
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slide-down {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scale-in {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.8); }
+    }
+    @keyframes slide-in-right {
+      from { opacity: 0; transform: translateX(16px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes number-roll {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .animate-slide-up { animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-scale-in { animation: scale-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-slide-in-right { animation: slide-in-right 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-number { animation: number-roll 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+    .stagger-1 { animation-delay: 0.04s; }
+    .stagger-2 { animation-delay: 0.08s; }
+    .stagger-3 { animation-delay: 0.12s; }
+    .stagger-4 { animation-delay: 0.16s; }
+    .stagger-5 { animation-delay: 0.20s; }
+    .stagger-6 { animation-delay: 0.24s; }
+
+    /* Card styles */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card:hover {
+      box-shadow: var(--shadow-md);
+    }
+    .card-hover {
+      cursor: pointer;
+    }
+    .card-hover:hover {
+      border-color: #cbd5e1;
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    /* Stat card */
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+    .stat-card .label {
+      font-size: 0.7rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+    .stat-card .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-top: 4px;
+    }
+
+    /* Health badge */
+    .health-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 10px;
+      border-radius: 99px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      line-height: 1.6;
+    }
+    .health-badge.healthy { background: var(--green-bg); color: #059669; }
+    .health-badge.stable { background: var(--amber-bg); color: #d97706; }
+    .health-badge.stressed { background: #fef2f2; color: #dc2626; }
+    .health-badge.critical { background: #fef2f2; color: #b91c1c; }
+    .health-badge .dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+    }
+    .health-badge.healthy .dot { background: var(--green); }
+    .health-badge.stable .dot { background: var(--amber); }
+    .health-badge.stressed .dot { background: #f59e0b; }
+    .health-badge.critical .dot { background: #dc2626; }
+
+    /* Player row */
+    .player-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+    .player-row:hover {
+      background: var(--bg-subtle);
+    }
+    .player-row.active-turn {
+      background: var(--indigo-bg);
+      border: 1px solid rgba(99, 102, 241, 0.15);
+    }
+    .player-row.eliminated {
+      opacity: 0.35;
+    }
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    /* Progress bar */
+    .progress-track {
+      height: 6px;
+      background: var(--bg-subtle);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Button styles */
+    .btn-primary {
+      background: var(--indigo);
+      color: white;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-primary:hover {
+      background: #4f46e5;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+    .btn-secondary:hover {
+      background: var(--bg-subtle);
+      border-color: #cbd5e1;
+    }
+
+    .btn-ghost-sm {
+      background: transparent;
+      color: var(--text-secondary);
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      transition: all 0.2s ease;
+    }
+    .btn-ghost-sm:hover {
+      background: var(--bg-subtle);
+      color: var(--text-primary);
+    }
+
+    /* Asset tile */
+    .asset-tile {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 14px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      background: var(--bg-card);
+    }
+    .asset-tile:hover {
+      border-color: #cbd5e1;
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    .asset-tile .suit {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    /* Chat message */
+    .chat-msg {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 6px 0;
+    }
+
+    /* Market card */
+    .market-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      text-align: center;
+    }
+    .market-card:hover {
+      border-color: #cbd5e1;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-3px);
+    }
+
+    /* Turn indicator */
+    .turn-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: var(--indigo-bg);
+      color: var(--indigo);
+    }
+    .turn-chip .pulse {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--indigo);
+    }
+
+    /* Tabs */
+    .tab {
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tab:hover { color: var(--text-primary); background: var(--bg-subtle); }
+    .tab.active { color: var(--indigo); background: var(--indigo-bg); }
+
+    /* Log */
+    .log-line {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .log-line:last-child { border-bottom: none; }
+
+    /* Tag */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.6rem;
+      font-weight: 600;
+    }
+
+    /* Toolbar icon button */
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: var(--text-secondary);
+    }
+    .icon-btn:hover {
+      background: var(--bg-subtle);
+      border-color: #cbd5e1;
+      color: var(--text-primary);
+    }
+
+    /* Empty state */
+    .empty-dash {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid { grid-template-columns: 1fr !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <header class="bg-white/80 backdrop-blur-xl border-b border-[var(--border)] sticky top-0 z-50">
+    <div class="max-w-[1400px] mx-auto px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-8">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--indigo)] to-[var(--purple)] flex items-center justify-center text-white font-bold text-sm shadow-sm">L</div>
+          <span class="text-base font-bold tracking-tight text-[var(--text-primary)]">Ledger</span>
+        </div>
+        <nav class="hidden md:flex items-center gap-1">
+          <span class="tab active">Dashboard</span>
+          <span class="tab">Market</span>
+          <span class="tab">Portfolio</span>
+          <span class="tab">Activity</span>
+        </nav>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--bg-subtle)] text-xs text-[var(--text-secondary)]">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>02:34</span>
+        </div>
+        <div class="flex items-center gap-2 pl-3 border-l border-[var(--border)]">
+          <div class="text-right">
+            <div class="text-[0.6rem] font-medium text-[var(--text-muted)]">Balance</div>
+            <div class="text-sm font-bold text-[var(--text-primary)]">240 LC</div>
+          </div>
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--indigo)] to-[var(--purple)] flex items-center justify-center text-white font-bold text-sm shadow-sm">A</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Dashboard -->
+  <div class="max-w-[1400px] mx-auto px-6 py-6">
+
+    <!-- Top Row: Turn + Round Info -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-8 animate-slide-up">
+      <div class="flex items-center gap-4">
+        <div class="turn-chip">
+          <div class="pulse animate-pulse-dot"></div>
+          Your Turn
+        </div>
+        <span class="text-sm text-[var(--text-secondary)]">Round <strong class="text-[var(--text-primary)]">4</strong> of 12</span>
+        <div class="h-4 w-px bg-[var(--border)]"></div>
+        <span class="text-sm text-[var(--text-secondary)]">Era 2 · <span class="text-[var(--teal)]">Expansion</span></span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn-secondary text-sm px-4 py-2 flex items-center gap-2">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          End Turn
+        </button>
+      </div>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-8">
+
+      <!-- LEFT PANEL -->
+      <div class="space-y-6">
+
+        <!-- Stats Row -->
+        <div class="grid grid-cols-4 gap-3 animate-slide-up stagger-1">
+          <div class="stat-card">
+            <div class="label">Liquid LC</div>
+            <div class="value text-[var(--text-primary)]" style="color: #0f172a;">240</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Asset Value</div>
+            <div class="value text-[var(--indigo)]">180</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Income / Rd</div>
+            <div class="value text-[var(--teal)]">+70</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Tax / Rd</div>
+            <div class="value text-[var(--coral)]">-35</div>
+          </div>
+        </div>
+
+        <!-- Net Worth Bar -->
+        <div class="card p-4 animate-slide-up stagger-2">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-[var(--text-primary)]">Net Worth</span>
+            <span class="text-lg font-bold tracking-tight text-[var(--text-primary)]">420 LC</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill bg-gradient-to-r from-[var(--indigo)] to-[var(--purple)]" style="width: 68%;"></div>
+          </div>
+          <div class="flex justify-between text-xs text-[var(--text-muted)] mt-1.5">
+            <span>0 LC</span>
+            <span class="font-medium text-[var(--text-primary)]">Portfolio Health: 68%</span>
+            <span>600 LC</span>
+          </div>
+        </div>
+
+        <!-- Your Portfolio / Assets Owned -->
+        <div class="animate-slide-up stagger-2">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-base font-bold text-[var(--text-primary)]">Your Portfolio</h2>
+            <button class="btn-ghost-sm text-xs">Manage</button>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <!-- Jack x3 -->
+            <div class="asset-tile animate-scale-in stagger-1">
+              <div class="flex items-center gap-2 mb-2">
+                <div class="suit" style="background: #eef2ff; color: #6366f1;">♠</div>
+                <span class="tag" style="background: #eef2ff; color: #6366f1;">×3</span>
+              </div>
+              <h4 class="text-sm font-semibold text-[var(--text-primary)]">Jack</h4>
+              <div class="mt-2 space-y-1">
+                <div class="flex justify-between text-[0.65rem]">
+                  <span class="text-[var(--text-muted)]">Income</span>
+                  <span class="font-medium text-[var(--teal)]">+10</span>
+                </div>
+                <div class="flex justify-between text-[0.65rem]">
+                  <span class="text-[var(--text-muted)]">Tax</span>
+                  <span class="font-medium text-[var(--coral)]">-5</span>
+                </div>
+              </div>
+            </div>
+            <!-- Queen x1 -->
+            <div class="asset-tile animate-scale-in stagger-2">
+              <div class="flex items-center gap-2 mb-2">
+                <div class="suit" style="background: #fdf2f8; color: #ec4899;">♥</div>
+                <span class="tag" style="background: #fdf2f8; color: #ec4899;">×1</span>
+              </div>
+              <h4 class="text-sm font-semibold text-[var(--text-primary)]">Queen</h4>
+              <div class="mt-2 space-y-1">
+                <div class="flex justify-between text-[0.65rem]">
+                  <span class="text-[var(--text-muted)]">Income</span>
+                  <span class="font-medium text-[var(--teal)]">+20</span>
+                </div>
+                <div class="flex justify-between text-[0.65rem]">
+                  <span class="text-[var(--text-muted)]">Tax</span>
+                  <span class="font-medium text-[var(--coral)]">-10</span>
+                </div>
+              </div>
+            </div>
+            <!-- King x1 -->
+            <div class="asset-tile animate-scale-in stagger-3">
+              <div class="flex items-center gap-2 mb-2">
+                <div class="suit" style="background: #fffbeb; color: #f59e0b;">♣</div>
+                <span class="tag" style="background: #fffbeb; color: #f59e0b;">×1</span>
+              </div>
+              <h4 class="text-sm font-semibold text-[var(--text-primary)]">King</h4>
+              <div class="mt-2 space-y-1">
+                <div class="flex justify-between text-[0.65rem]">
+                  <span class="text-[var(--text-muted)]">Income</span>
+                  <span class="font-medium text-[var(--teal)]">+30</span>
+                </div>
+                <div class="flex justify-between text-[0.65rem]">
+                  <span class="text-[var(--text-muted)]">Tax</span>
+                  <span class="font-medium text-[var(--coral)]">-15</span>
+                </div>
+              </div>
+            </div>
+            <!-- Ace (empty) -->
+            <div class="empty-dash animate-scale-in stagger-4">
+              <div style="font-size: 1.2rem; margin-bottom: 4px;">♦</div>
+              <div class="text-xs font-medium text-[var(--text-muted)]">Ace Slot</div>
+              <div class="text-[0.6rem] mt-1">Limit 1 per player</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Market Assets -->
+        <div class="animate-slide-up stagger-3">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-base font-bold text-[var(--text-primary)]">Market</h2>
+            <span class="text-xs text-[var(--text-muted)]">Bank supply: <span class="font-medium text-[var(--text-primary)]">Unlimited</span></span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="market-card animate-scale-in stagger-1">
+              <div class="w-10 h-10 mx-auto rounded-lg flex items-center justify-center text-lg mb-2" style="background: #eef2ff; color: #6366f1;">♠</div>
+              <h4 class="text-sm font-semibold text-[var(--text-primary)]">Jack</h4>
+              <div class="text-xl font-bold tracking-tight text-[var(--text-primary)] mt-0.5">20</div>
+              <div class="text-[0.55rem] uppercase font-medium text-[var(--text-muted)] tracking-wider">LC</div>
+              <div class="mt-3 text-[0.6rem] space-y-0.5">
+                <div class="flex justify-between"><span class="text-[var(--text-muted)]">Income</span><span class="text-[var(--teal)] font-medium">+10</span></div>
+                <div class="flex justify-between"><span class="text-[var(--text-muted)]">Tax</span><span class="text-[var(--coral)] font-medium">-5</span></div>
+              </div>
+              <button class="btn-primary text-xs w-full mt-3 py-2">Buy</button>
+            </div>
+            <div class="market-card animate-scale-in stagger-2">
+              <div class="w-10 h-10 mx-auto rounded-lg flex items-center justify-center text-lg mb-2" style="background: #fdf2f8; color: #ec4899;">♥</div>
+              <h4 class="text-sm font-semibold text-[var(--text-primary)]">Queen</h4>
+              <div class="text-xl font-bold tracking-tight text-[var(--text-primary)] mt-0.5">40</div>
+              <div class="text-[0.55rem] uppercase font-medium text-[var(--text-muted)] tracking-wider">LC</div>
+              <div class="mt-3 text-[0.6rem] space-y-0.5">
+                <div class="flex justify-between"><span class="text-[var(--text-muted)]">Income</span><span class="text-[var(--teal)] font-medium">+20</span></div>
+                <div class="flex justify-between"><span class="text-[var(--text-muted)]">Tax</span><span class="text-[var(--coral)] font-medium">-10</span></div>
+              </div>
+              <button class="btn-primary text-xs w-full mt-3 py-2">Buy</button>
+            </div>
+            <div class="market-card animate-scale-in stagger-3">
+              <div class="w-10 h-10 mx-auto rounded-lg flex items-center justify-center text-lg mb-2" style="background: #fffbeb; color: #f59e0b;">♣</div>
+              <h4 class="text-sm font-semibold text-[var(--text-primary)]">King</h4>
+              <div class="text-xl font-bold tracking-tight text-[var(--text-primary)] mt-0.5">60</div>
+              <div class="text-[0.55rem] uppercase font-medium text-[var(--text-muted)] tracking-wider">LC</div>
+              <div class="mt-3 text-[0.6rem] space-y-0.5">
+                <div class="flex justify-between"><span class="text-[var(--text-muted)]">Income</span><span class="text-[var(--teal)] font-medium">+30</span></div>
+                <div class="flex justify-between"><span class="text-[var(--text-muted)]">Tax</span><span class="text-[var(--coral)] font-medium">-15</span></div>
+              </div>
+              <button class="btn-primary text-xs w-full mt-3 py-2">Buy</button>
+            </div>
+            <div class="market-card animate-scale-in stagger-4">
+              <div class="w-10 h-10 mx-auto rounded-lg flex items-center justify-center text-lg mb-2" style="background: #fef2f2; color: #f43f5e;">♦</div>
+              <h4 class="text-sm font-semibold text-[var(--text-primary)]">Ace</h4>
+              <div class="text-xl font-bold tracking-tight text-[var(--text-primary)] mt-0.5">100</div>
+              <div class="text-[0.55rem] uppercase font-medium text-[var(--text-muted)] tracking-wider">LC</div>
+              <div class="mt-3 text-[0.6rem] space-y-0.5">
+                <div class="flex justify-between"><span class="text-[var(--text-muted)]">Income</span><span class="text-[var(--teal)] font-medium">+50</span></div>
+                <div class="flex justify-between"><span class="text-[var(--text-muted)]">Tax</span><span class="text-[var(--coral)] font-medium">-25</span></div>
+              </div>
+              <button class="btn-primary text-xs w-full mt-3 py-2">Buy</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Toolbar -->
+        <div class="card p-3 flex flex-wrap items-center gap-1.5 animate-slide-up stagger-4">
+          <span class="text-[0.65rem] font-medium text-[var(--text-muted)] uppercase tracking-wider px-2">Actions</span>
+          <div class="h-5 w-px bg-[var(--border)]"></div>
+          <button class="btn-ghost-sm">Buy Asset</button>
+          <button class="btn-ghost-sm">Sell</button>
+          <button class="btn-ghost-sm">Borrow</button>
+          <button class="btn-ghost-sm">Repay</button>
+          <button class="btn-ghost-sm">Auction</button>
+          <div class="h-5 w-px bg-[var(--border)]"></div>
+          <button class="btn-ghost-sm" style="color: var(--coral);">+ Takeover</button>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="card animate-slide-up stagger-5">
+          <div class="px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-[var(--text-primary)]">Activity</h3>
+            <button class="btn-ghost-sm">View all</button>
+          </div>
+          <div class="px-5 py-3 space-y-0">
+            <div class="log-line">
+              <div class="w-2 h-2 rounded-full bg-[var(--teal)] mt-0.5 shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-xs"><span class="font-medium text-[var(--text-primary)]">Apex Corp</span> <span class="text-[var(--text-secondary)]">purchased a</span> <span class="font-medium" style="color: #6366f1;">Jack</span></div>
+                <div class="text-[0.6rem] text-[var(--text-muted)]">2 min ago</div>
+              </div>
+            </div>
+            <div class="log-line">
+              <div class="w-2 h-2 rounded-full bg-[var(--amber)] mt-0.5 shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-xs"><span class="font-medium text-[var(--text-primary)]">Ironhold Ltd</span> <span class="text-[var(--text-secondary)]">borrowed</span> <span class="font-medium" style="color: #f59e0b;">80 LC</span></div>
+                <div class="text-[0.6rem] text-[var(--text-muted)]">7 min ago</div>
+              </div>
+            </div>
+            <div class="log-line">
+              <div class="w-2 h-2 rounded-full bg-[var(--coral)] mt-0.5 shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-xs"><span class="font-medium text-[var(--coral)]">Tax Day</span> <span class="text-[var(--text-secondary)]">— All players paid obligations</span></div>
+                <div class="text-[0.6rem] text-[var(--text-muted)]">20 min ago</div>
+              </div>
+            </div>
+            <div class="log-line">
+              <div class="w-2 h-2 rounded-full bg-[var(--coral)] mt-0.5 shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-xs"><span class="font-medium text-[var(--coral)]">Takeover Filed</span> <span class="text-[var(--text-secondary)]">— Storm Inc → Nexus Corp</span></div>
+                <div class="text-[0.6rem] text-[var(--text-muted)]">36 min ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div class="space-y-4 animate-slide-up stagger-4">
+
+        <!-- Your Profile Card -->
+        <div class="card overflow-hidden">
+          <div class="h-16 bg-gradient-to-r from-[var(--indigo)] to-[var(--purple)]"></div>
+          <div class="px-5 pb-5 relative">
+            <div class="w-14 h-14 rounded-xl bg-white shadow-md flex items-center justify-center text-xl font-bold text-[var(--indigo)] -mt-7 border-2 border-white mb-3">
+              A
+            </div>
+            <div class="flex items-center justify-between mb-1">
+              <h2 class="text-lg font-bold text-[var(--text-primary)]">Apex Corp</h2>
+              <span class="health-badge healthy"><span class="dot"></span>Healthy</span>
+            </div>
+            <p class="text-xs text-[var(--text-muted)]">Your corporation · Round 4</p>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-3 gap-2 mt-4">
+              <div class="text-center p-2 bg-[var(--bg-subtle)] rounded-lg">
+                <div class="text-lg font-bold text-[var(--text-primary)]">240</div>
+                <div class="text-[0.55rem] uppercase font-medium text-[var(--text-muted)] tracking-wider">LC</div>
+              </div>
+              <div class="text-center p-2 bg-[var(--bg-subtle)] rounded-lg">
+                <div class="text-lg font-bold text-[var(--teal)]">+70</div>
+                <div class="text-[0.55rem] uppercase font-medium text-[var(--text-muted)] tracking-wider">Income</div>
+              </div>
+              <div class="text-center p-2 bg-[var(--bg-subtle)] rounded-lg">
+                <div class="text-lg font-bold text-[var(--coral)]">-35</div>
+                <div class="text-[0.55rem] uppercase font-medium text-[var(--text-muted)] tracking-wider">Tax</div>
+              </div>
+            </div>
+
+            <!-- Loan status -->
+            <div class="mt-4 p-3 rounded-lg border border-[var(--border)]">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-[var(--text-primary)]">Active Loan</span>
+                <span class="tag" style="background: var(--amber-bg); color: #d97706;">2 rounds left</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-[var(--text-muted)]">Total Due</span>
+                <span class="font-medium text-[var(--text-primary)]">120 LC</span>
+              </div>
+              <div class="mt-2 progress-track">
+                <div class="progress-fill bg-[var(--amber)]" style="width: 33%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Opponents -->
+        <div class="card">
+          <div class="px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-[var(--text-primary)]">Players at the Table</h3>
+            <span class="text-xs text-[var(--text-muted)]">4 / 6</span>
+          </div>
+          <div class="p-2 space-y-0.5">
+            <!-- Ironhold — Active -->
+            <div class="player-row active-turn">
+              <div class="avatar" style="background: linear-gradient(135deg, #475569, #1e293b);">I</div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-medium text-[var(--text-primary)]">Ironhold Ltd</span>
+                  <span class="health-badge stressed"><span class="dot"></span>Stressed</span>
+                  <svg class="w-3.5 h-3.5 text-[var(--indigo)] ml-auto" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-[var(--text-secondary)]">
+                  <span class="font-medium">180 LC</span>
+                  <span class="text-[var(--teal)]">+40</span>
+                  <span class="text-[var(--coral)]">-20</span>
+                  <span>· ♠2 ♥1</span>
+                </div>
+              </div>
+            </div>
+            <!-- Storm -->
+            <div class="player-row">
+              <div class="avatar" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">S</div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-medium text-[var(--text-primary)]">Storm Inc</span>
+                  <span class="health-badge healthy"><span class="dot"></span>Healthy</span>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-[var(--text-secondary)]">
+                  <span class="font-medium">420 LC</span>
+                  <span class="text-[var(--teal)]">+90</span>
+                  <span class="text-[var(--coral)]">-45</span>
+                  <span>· ♠3 ♥1 ♣1</span>
+                </div>
+              </div>
+            </div>
+            <!-- Nexus — Critical -->
+            <div class="player-row">
+              <div class="avatar" style="background: linear-gradient(135deg, #f43f5e, #be123c);">N</div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-medium text-[var(--text-primary)]">Nexus Corp</span>
+                  <span class="health-badge critical"><span class="dot"></span>Critical</span>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-[var(--text-secondary)]">
+                  <span class="font-medium">60 LC</span>
+                  <span class="text-[var(--teal)]">+10</span>
+                  <span class="text-[var(--coral)]">-5</span>
+                  <span>· ♠1</span>
+                </div>
+              </div>
+            </div>
+            <!-- Cipher — Eliminated -->
+            <div class="player-row eliminated">
+              <div class="avatar" style="background: linear-gradient(135deg, #cbd5e1, #94a3b8);">C</div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-medium text-[#94a3b8]">Cipher Co</span>
+                  <span class="tag" style="background: #f1f5f9; color: #94a3b8;">Eliminated</span>
+                </div>
+                <div class="text-xs text-[#94a3b8]">Bankrupt — Round 3</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Takeover Alert -->
+        <div class="card border-[var(--coral)]/30 animate-scale-in" style="background: #fff5f5;">
+          <div class="px-5 py-4 flex items-start gap-3">
+            <div class="w-9 h-9 rounded-lg bg-[var(--coral-bg)] flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-[var(--coral)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M18.364 5.636a9 9 0 1 1-12.728 0 9 9 0 0 1 12.728 0z"/></svg>
+            </div>
+            <div>
+              <div class="text-sm font-semibold text-[var(--coral)]">Hostile Takeover In Progress</div>
+              <p class="text-xs text-[var(--text-secondary)] mt-0.5">Storm Inc has filed against Nexus Corp. Defense phase is active — table negotiations are frozen until resolved.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat -->
+        <div class="card" style="height: 300px; display: flex; flex-direction: column;">
+          <div class="px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-[var(--text-primary)]">Negotiations</h3>
+            <span class="tag" style="background: var(--indigo-bg); color: var(--indigo);">Private</span>
+          </div>
+          <div class="flex-1 overflow-y-auto px-5 py-3 space-y-1">
+            <div class="chat-msg">
+              <span class="text-xs font-semibold shrink-0" style="color: #475569;">I:</span>
+              <p class="text-xs text-[var(--text-secondary)]">"Anyone selling a Queen? I'll pay 45 LC."</p>
+            </div>
+            <div class="chat-msg">
+              <span class="text-xs font-semibold shrink-0" style="color: #a855f7;">S:</span>
+              <p class="text-xs text-[var(--text-secondary)]">"I'll sell you mine for 50. Final."</p>
+            </div>
+            <div class="chat-msg">
+              <span class="text-xs font-semibold shrink-0" style="color: var(--text-muted);">System:</span>
+              <p class="text-xs text-[var(--text-secondary)] italic">Taxes due in 1 round.</p>
+            </div>
+            <div class="chat-msg">
+              <span class="text-xs font-semibold shrink-0" style="color: #f43f5e;">N:</span>
+              <p class="text-xs text-[var(--text-secondary)]">"40 LC needed urgently. Will repay 60 in 2 rounds."</p>
+            </div>
+            <div class="chat-msg">
+              <span class="text-xs font-semibold shrink-0" style="color: var(--text-muted);">System:</span>
+              <p class="text-xs text-[var(--text-secondary)] italic">Negotiations frozen — Takeover in progress.</p>
+            </div>
+          </div>
+          <div class="px-5 py-3 border-t border-[var(--border)]">
+            <div class="flex gap-2">
+              <input type="text" placeholder="Type a message..." class="flex-1 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--indigo)] transition-colors" />
+              <button class="btn-primary text-sm px-4 py-2">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-[var(--border)] bg-white mt-12">
+    <div class="max-w-[1400px] mx-auto px-6 h-10 flex items-center justify-between">
+      <div class="flex items-center gap-5 text-xs text-[var(--text-muted)]">
+        <span>Ledger · Boardroom</span>
+        <span>● Connected</span>
+        <span>Room LGE-427</span>
+      </div>
+      <div class="flex items-center gap-4 text-xs text-[var(--text-muted)]">
+        <span>v0.1 · 24ms ping</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
