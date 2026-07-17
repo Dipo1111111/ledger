@@ -1,7 +1,6 @@
 {
-  "installCommand": "npm install --workspaces",
-  "buildCommand": "cd packages/common && npm run build && cd ../client && npm run build",
+  "installCommand": "npm install && npm run build -w packages/common",
+  "buildCommand": "npm run build -w packages/client",
   "outputDirectory": "packages/client/dist",
-  "framework": "vite",
-  "ignoreCommand": "npx only-allow npm"
+  "framework": "vite"
 }
