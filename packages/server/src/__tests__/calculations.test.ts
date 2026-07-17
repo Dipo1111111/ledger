@@ -38,8 +38,8 @@ describe('calculateNetWorth', () => {
     const player = makePlayer({
       lc: 50,
       assets: [
-        { id: 'a1', type: 'jack', purchasedAt: Date.now() },  // 20 LC
-        { id: 'a2', type: 'queen', purchasedAt: Date.now() }, // 40 LC
+        { id: 'a1', type: 'jack', ownerId: 'p1' },  // 20 LC
+        { id: 'a2', type: 'queen', ownerId: 'p1' }, // 40 LC
       ],
     });
     // 50 + 20 + 40 = 110
@@ -50,9 +50,9 @@ describe('calculateNetWorth', () => {
     const player = makePlayer({
       lc: 20,
       assets: [
-        { id: 'a1', type: 'ace', purchasedAt: Date.now() },   // 100 LC
-        { id: 'a2', type: 'king', purchasedAt: Date.now() },   // 60 LC
-        { id: 'a3', type: 'queen', purchasedAt: Date.now() },  // 40 LC
+        { id: 'a1', type: 'ace', ownerId: 'p1' },   // 100 LC
+        { id: 'a2', type: 'king', ownerId: 'p1' },   // 60 LC
+        { id: 'a3', type: 'queen', ownerId: 'p1' },  // 40 LC
       ],
     });
     // 20 + 100 + 60 + 40 = 220
@@ -80,7 +80,7 @@ describe('calculateIncome', () => {
 
   it('calculates income from single asset', () => {
     const player = makePlayer({
-      assets: [{ id: 'a1', type: 'jack', purchasedAt: Date.now() }], // 10 LC/round
+      assets: [{ id: 'a1', type: 'jack', ownerId: 'p1' }], // 10 LC/round
     });
     expect(calculateIncome(player)).toBe(10);
   });
@@ -88,9 +88,9 @@ describe('calculateIncome', () => {
   it('sums income from multiple assets', () => {
     const player = makePlayer({
       assets: [
-        { id: 'a1', type: 'jack', purchasedAt: Date.now() },   // 10
-        { id: 'a2', type: 'queen', purchasedAt: Date.now() },  // 20
-        { id: 'a3', type: 'king', purchasedAt: Date.now() },   // 30
+        { id: 'a1', type: 'jack', ownerId: 'p1' },   // 10
+        { id: 'a2', type: 'queen', ownerId: 'p1' },  // 20
+        { id: 'a3', type: 'king', ownerId: 'p1' },   // 30
       ],
     });
     // 10 + 20 + 30 = 60
@@ -100,9 +100,9 @@ describe('calculateIncome', () => {
   it('handles duplicate asset types', () => {
     const player = makePlayer({
       assets: [
-        { id: 'a1', type: 'jack', purchasedAt: Date.now() },
-        { id: 'a2', type: 'jack', purchasedAt: Date.now() },
-        { id: 'a3', type: 'jack', purchasedAt: Date.now() },
+        { id: 'a1', type: 'jack', ownerId: 'p1' },
+        { id: 'a2', type: 'jack', ownerId: 'p1' },
+        { id: 'a3', type: 'jack', ownerId: 'p1' },
       ],
     });
     // 3 jacks * 10 = 30
@@ -111,7 +111,7 @@ describe('calculateIncome', () => {
 
   it('handles ace income (highest per round)', () => {
     const player = makePlayer({
-      assets: [{ id: 'a1', type: 'ace', purchasedAt: Date.now() }], // 50 LC/round
+      assets: [{ id: 'a1', type: 'ace', ownerId: 'p1' }], // 50 LC/round
     });
     expect(calculateIncome(player)).toBe(50);
   });

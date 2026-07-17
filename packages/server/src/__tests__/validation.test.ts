@@ -26,8 +26,9 @@ function makePlayer(overrides: Partial<Player> = {}): Player {
 function makeState(playerOverrides: Partial<Player> = {}): GameState {
   const player = makePlayer(playerOverrides);
   return {
-    roomCode: 'TEST01',
+    id: 'game-1',
     phase: 'in_progress',
+    roundPhase: 'actions',
     roundNumber: 1,
     currentPlayerIndex: 0,
     turnOrder: [player.id],
@@ -35,10 +36,13 @@ function makeState(playerOverrides: Partial<Player> = {}): GameState {
     market: { jack: 8, queen: 6, king: 4, ace: 2 },
     logs: [],
     startedAt: Date.now(),
+    turnTimerSeconds: 25,
     turnTimerEndsAt: null,
     activeAuction: null,
     activeTakeover: null,
+    investmentOffers: [],
     expansionVotes: null,
+    expansionsUsed: 0,
     winnerId: null,
   };
 }
@@ -71,20 +75,12 @@ describe('canBuyAsset', () => {
     const state = makeState({
       lc: 200,
       assets: [
-        { id: 'a1', type: 'ace', purchasedAt: Date.now() },
-        { id: 'a2', type: 'ace', purchasedAt: Date.now() }, // ace maxPerPlayer = 1... wait no
+        { id: 'a1', type: 'jack', ownerId: 'p1' },
+        { id: 'a2', type: 'jack', ownerId: 'p1' },
+        { id: 'a3', type: 'jack', ownerId: 'p1' },
       ],
     });
-    // Actually ace maxPerPlayer is 1, let me use jack (maxPerPlayer = 3)
-    const state2 = makeState({
-      lc: 200,
-      assets: [
-        { id: 'a1', type: 'jack', purchasedAt: Date.now() },
-        { id: 'a2', type: 'jack', purchasedAt: Date.now() },
-        { id: 'a3', type: 'jack', purchasedAt: Date.now() },
-      ],
-    });
-    const result = canBuyAsset('p1', 'jack', state2);
+    const result = canBuyAsset('p1', 'jack', state);
     expect(result.valid).toBe(false);
     expect(result.reason).toContain('Already at max');
   });
@@ -137,14 +133,15 @@ describe('canBorrow', () => {
     const state = makeState({
       loans: [{
         id: 'l1',
-        principal: 50,
+        type: 'loan',
+        borrowerId: 'p1',
+        amount: 50,
         interestRate: 0.5,
-        termRounds: 3,
-        roundsRemaining: 2,
         repaymentAmount: 75,
+        deadlineRound: 4,
+        createdAtRound: 1,
         isRepaid: false,
         isDefaulted: false,
-        takenAtRound: 1,
       }],
     });
     const result = canBorrow('p1', 30, state);
@@ -156,14 +153,15 @@ describe('canBorrow', () => {
     const state = makeState({
       loans: [{
         id: 'l1',
-        principal: 50,
+        type: 'loan',
+        borrowerId: 'p1',
+        amount: 50,
         interestRate: 0.5,
-        termRounds: 3,
-        roundsRemaining: 0,
         repaymentAmount: 75,
+        deadlineRound: 1,
+        createdAtRound: 1,
         isRepaid: false,
         isDefaulted: true,
-        takenAtRound: 1,
       }],
     });
     const result = canBorrow('p1', 30, state);
@@ -177,7 +175,7 @@ describe('canBorrow', () => {
 describe('canSellAsset', () => {
   it('allows selling an owned asset', () => {
     const state = makeState({
-      assets: [{ id: 'a1', type: 'jack', purchasedAt: Date.now() }],
+      assets: [{ id: 'a1', type: 'jack', ownerId: 'p1' }],
     });
     const result = canSellAsset('p1', 'a1', state);
     expect(result.valid).toBe(true);
@@ -205,7 +203,7 @@ describe('canPrivateSell', () => {
     const seller = makePlayer({
       id: 'p1',
       lc: 50,
-      assets: [{ id: 'a1', type: 'jack', purchasedAt: Date.now() }],
+      assets: [{ id: 'a1', type: 'jack', ownerId: 'p1' }],
     });
     const state = makeState(seller);
     state.players.push(buyer);
@@ -215,7 +213,7 @@ describe('canPrivateSell', () => {
 
   it('rejects self-sale', () => {
     const state = makeState({
-      assets: [{ id: 'a1', type: 'jack', purchasedAt: Date.now() }],
+      assets: [{ id: 'a1', type: 'jack', ownerId: 'p1' }],
     });
     const result = canPrivateSell('p1', 'a1', 'p1', 15, state);
     expect(result.valid).toBe(false);
@@ -226,7 +224,7 @@ describe('canPrivateSell', () => {
     const buyer = makePlayer({ id: 'p2', lc: 5 });
     const seller = makePlayer({
       id: 'p1',
-      assets: [{ id: 'a1', type: 'jack', purchasedAt: Date.now() }],
+      assets: [{ id: 'a1', type: 'jack', ownerId: 'p1' }],
     });
     const state = makeState(seller);
     state.players.push(buyer);
@@ -239,11 +237,10 @@ describe('canPrivateSell', () => {
     const buyer = makePlayer({ id: 'p2', lc: 500 });
     const seller = makePlayer({
       id: 'p1',
-      assets: [{ id: 'a1', type: 'jack', purchasedAt: Date.now() }],
+      assets: [{ id: 'a1', type: 'jack', ownerId: 'p1' }],
     });
     const state = makeState(seller);
     state.players.push(buyer);
-    // jack purchase price is 20, 5x = 100, so 101 should fail
     const result = canPrivateSell('p1', 'a1', 'p2', 101, state);
     expect(result.valid).toBe(false);
     expect(result.reason).toContain('Invalid sale price');
@@ -253,7 +250,7 @@ describe('canPrivateSell', () => {
     const buyer = makePlayer({ id: 'p2', lc: 200 });
     const seller = makePlayer({
       id: 'p1',
-      assets: [{ id: 'a1', type: 'jack', purchasedAt: Date.now() }],
+      assets: [{ id: 'a1', type: 'jack', ownerId: 'p1' }],
     });
     const state = makeState(seller);
     state.players.push(buyer);
@@ -270,14 +267,15 @@ describe('canRepayLoan', () => {
       lc: 100,
       loans: [{
         id: 'l1',
-        principal: 50,
+        type: 'loan',
+        borrowerId: 'p1',
+        amount: 50,
         interestRate: 0.5,
-        termRounds: 3,
-        roundsRemaining: 2,
         repaymentAmount: 75,
+        deadlineRound: 4,
+        createdAtRound: 1,
         isRepaid: false,
         isDefaulted: false,
-        takenAtRound: 1,
       }],
     });
     const result = canRepayLoan('p1', 'l1', 75, state);
@@ -289,14 +287,15 @@ describe('canRepayLoan', () => {
       lc: 100,
       loans: [{
         id: 'l1',
-        principal: 50,
+        type: 'loan',
+        borrowerId: 'p1',
+        amount: 50,
         interestRate: 0.5,
-        termRounds: 3,
-        roundsRemaining: 2,
         repaymentAmount: 75,
+        deadlineRound: 4,
+        createdAtRound: 1,
         isRepaid: true,
         isDefaulted: false,
-        takenAtRound: 1,
       }],
     });
     const result = canRepayLoan('p1', 'l1', 75, state);
@@ -309,14 +308,15 @@ describe('canRepayLoan', () => {
       lc: 100,
       loans: [{
         id: 'l1',
-        principal: 50,
+        type: 'loan',
+        borrowerId: 'p1',
+        amount: 50,
         interestRate: 0.5,
-        termRounds: 3,
-        roundsRemaining: 0,
         repaymentAmount: 75,
+        deadlineRound: 1,
+        createdAtRound: 1,
         isRepaid: false,
         isDefaulted: true,
-        takenAtRound: 1,
       }],
     });
     const result = canRepayLoan('p1', 'l1', 75, state);
@@ -329,14 +329,15 @@ describe('canRepayLoan', () => {
       lc: 10,
       loans: [{
         id: 'l1',
-        principal: 50,
+        type: 'loan',
+        borrowerId: 'p1',
+        amount: 50,
         interestRate: 0.5,
-        termRounds: 3,
-        roundsRemaining: 2,
         repaymentAmount: 75,
+        deadlineRound: 4,
+        createdAtRound: 1,
         isRepaid: false,
         isDefaulted: false,
-        takenAtRound: 1,
       }],
     });
     const result = canRepayLoan('p1', 'l1', 75, state);
