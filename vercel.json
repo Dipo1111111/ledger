@@ -1,6 +1,0 @@
-{
-  "installCommand": "npm install",
-  "buildCommand": "cd packages/common && npx tsc && cd ../client && npx tsc && npx vite build",
-  "outputDirectory": "packages/client/dist",
-  "framework": "vite"
-}
